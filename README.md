@@ -1,54 +1,65 @@
-# Tavern Keeper G — V0.6
+# Tavern Keeper G — V0.7
 
-V0.6 convierte la jornada en una experiencia viva y dirigible sin abandonar la línea visual de V0.5.
+V0.7 profundiza dos sistemas centrales: la economía de la taberna y el mercado laboral.
 
-## Jornada viva
+## Economía por producto
 
-- La taberna abre una jornada de 6 horas virtuales (18:00–00:00).
-- Duración aproximada: 2 minutos a 1×, 1 minuto a 2× y 30 segundos a 4×.
-- Clientes individuales entran, esperan mesa, hacen pedidos, consumen y se marchan.
-- Se muestran ocupación, caja, clientes servidos y clientes perdidos en tiempo real.
-- Tipos: campesinos, mercaderes, aventureros, guardias y nobles.
-- Cada segmento tiene paciencia, preferencias y gasto diferentes.
-- El servicio lento provoca abandonos.
-- Falta de barra o cocina ralentiza los pedidos que dependen de esos puestos.
-- Propinas ligadas a satisfacción y tipo de cliente.
-- Eventos durante el turno: grupos de mercaderes, peleas, música, nobles y rondas.
-- Clientes muy satisfechos pueden convertirse en habituales y regresar en jornadas posteriores.
+La taberna deja de operar solamente con “cerveza” y “raciones”. Ahora existen seis productos distintos:
 
-## Dirección de personal durante el servicio
+- Cerveza rubia
+- Vino especiado
+- Hidromiel dorada
+- Estofado de la casa
+- Asado especiado
+- Tabla de queso
 
-- Las trabajadoras permanecen operativas por puestos: Salón, Barra, Cocina, Recepción y Despensa.
-- Durante la jornada se puede tocar una trabajadora para moverla al siguiente puesto compatible.
-- La simulación recalcula el rendimiento inmediatamente.
-- La fatiga al final del turno depende del tiempo trabajado y de la carga del puesto.
-- Moral, lealtad y experiencia siguen evolucionando.
+Cada uno tiene:
 
-## Informe de jornada
+- inventario propio;
+- coste unitario aproximado;
+- precio de venta editable;
+- margen;
+- requisito de reputación;
+- demanda distinta según el tipo de cliente.
 
-Registra:
+El menú se puede activar/desactivar producto por producto. Durante la jornada viva, los clientes piden según sus preferencias y el stock se descuenta realmente. Se muestran alertas de inventario bajo y productos agotados.
 
-- llegadas;
-- clientes servidos y perdidos;
-- pico de ocupación;
-- espera promedio;
-- bebidas y platos vendidos;
-- propinas;
-- eventos;
-- nuevos habituales;
-- ingresos, gastos y beneficio neto.
+## Proveedores
 
-## Actualización Android
+- Mercado local: coste normal.
+- Caravana mayorista: 10% más barata y lotes mayores; requiere reputación 18.
+- Gremio de Brumavieja: 18% más barato; requiere reputación 35.
+
+Las compras actualizan el coste medio de inventario. El informe de jornada calcula coste de producto vendido, ticket medio y margen por producto.
+
+## Mercado laboral procedural
+
+Cada renovación genera candidatas nuevas con nombre, edad adulta, rol, personalidad, stats, salario, especialidad, atuendo y retrato.
+
+Distribución base por candidata:
+
+- Común: 55%
+- Competente: 27%
+- Experta: 12%
+- Élite: 5%
+- Prodigio: 0.9%
+- Genio: 0.1%
+
+Las Prodigio y Genio disparan un anuncio especial en el mercado laboral. Las Genio tienen estadísticas excepcionalmente altas, una bonificación de eficiencia propia y costes salariales/de contratación muy elevados. No existe sistema de “pity”: encontrarlas debe sentirse realmente extraordinario.
+
+Las candidatas raras también pueden llevar atuendos de fantasía medieval más atrevidos y distintivos, siempre como personajes adultos.
+
+## Mercado dinámico
+
+Además de pagar 8 oro para renovar manualmente, existe una probabilidad de que nuevas candidatas lleguen automáticamente después de una jornada.
+
+## Android
 
 - `appId`: `com.alfonso.tavernkeeper`
-- `versionCode`: `6`
-- `versionName`: `0.6.0`
-- Misma firma DEV estable introducida en V0.5.
+- `versionCode`: `7`
+- `versionName`: `0.7.0`
+- Misma firma DEV de V0.5/V0.6.
 
-Por tanto, una APK V0.6 generada por este repositorio debe instalarse como **actualización encima de V0.5**, conservando la partida local.
+La APK debe instalarse como actualización sobre V0.6 y conservar la partida local.
 
-La clave incluida en `android-dev/` es exclusivamente de desarrollo y no debe usarse para publicar el juego en una tienda.
-
-## Compilación
-
-Al hacer push a `main`, GitHub Actions genera el artifact `tavern-keeper-G-v0.6-apk`.
+GitHub Actions genera el artifact `tavern-keeper-G-v0.7-apk`.

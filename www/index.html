@@ -173,7 +173,7 @@
               <div><span class="eyebrow">MERCADO LABORAL</span><h3>Candidatas</h3></div>
               <button id="refreshCandidates" class="small-btn">Renovar · 8 oro</button>
             </div>
-            <div id="candidateStrip" class="candidate-strip"></div>
+            <div id="marketEvent" class="market-event"></div><div id="candidateStrip" class="candidate-strip"></div>
           </section>
         </div>
       </section>
@@ -184,8 +184,7 @@
           <div class="card page-card">
             <div class="panel-cap"><div><span class="eyebrow">POLÍTICA DE PRECIOS</span><h3>Tarifas de venta</h3></div></div>
             <div class="page-card-body">
-              <div class="price-row"><span>Jarra de cerveza</span><div class="stepper"><button data-price="ale" data-delta="-1">−</button><b id="alePrice">4</b><button data-price="ale" data-delta="1">+</button></div></div>
-              <div class="price-row"><span>Plato caliente</span><div class="stepper"><button data-price="meal" data-delta="-1">−</button><b id="mealPrice">7</b><button data-price="meal" data-delta="1">+</button></div></div>
+              <div id="menuGrid" class="menu-grid"></div>
               <p id="priceAdvice" class="advice"></p>
             </div>
           </div>
@@ -195,7 +194,7 @@
 
       <section id="staff" class="panel">
         <div class="page-head"><div><span class="eyebrow">RECURSOS HUMANOS</span><h1>Personal</h1><p>Contratación, desempeño, asignaciones y coste salarial.</p></div><button id="refreshCandidates2" class="small-btn">Renovar candidatas · 8 oro</button></div>
-        <div class="staff-layout"><div><h3 class="subheading">Plantilla actual</h3><div id="staffRoster" class="staff-roster"></div></div><div><h3 class="subheading">Mercado laboral</h3><div id="candidateGrid" class="candidate-grid"></div></div></div>
+        <div id="marketEvent2" class="market-event wide"></div><div class="staff-layout"><div><h3 class="subheading">Plantilla actual</h3><div id="staffRoster" class="staff-roster"></div></div><div><h3 class="subheading">Mercado laboral</h3><div id="candidateGrid" class="candidate-grid"></div></div></div>
       </section>
 
       <section id="customers" class="panel">
@@ -205,17 +204,17 @@
 
       <section id="kitchen" class="panel">
         <div class="page-head"><div><span class="eyebrow">PRODUCCIÓN</span><h1>Cocina</h1><p>Inventario alimentario y capacidad de producción.</p></div></div>
-        <div class="two-col"><div class="card resource-card"><div><span class="resource-label">RACIONES</span><b id="foodStock">12</b><small>unidades listas para servicio</small></div><button id="buyFood">Comprar +8 · 16 oro</button></div><div class="card page-card"><div class="panel-cap"><div><span class="eyebrow">RENDIMIENTO</span><h3>Cocina</h3></div></div><div id="kitchenMetrics" class="metric-list page-card-body"></div></div></div>
+        <div class="two-col stock-layout"><div class="card page-card"><div class="panel-cap"><div><span class="eyebrow">DESPENSA</span><h3>Alimentos y platos</h3></div></div><div id="foodStockGrid" class="product-stock-grid page-card-body"></div><b id="foodStock" hidden>0</b><button id="buyFood" hidden></button></div><div class="card page-card"><div class="panel-cap"><div><span class="eyebrow">RENDIMIENTO</span><h3>Cocina</h3></div></div><div id="kitchenMetrics" class="metric-list page-card-body"></div></div></div>
       </section>
 
       <section id="cellar" class="panel">
         <div class="page-head"><div><span class="eyebrow">SUMINISTROS</span><h1>Bodega</h1><p>Existencias de bebida, almacenamiento y merma.</p></div></div>
-        <div class="two-col"><div class="card resource-card"><div><span class="resource-label">CERVEZA</span><b id="aleStock">20</b><small>jarras disponibles</small></div><button id="buyAle">Comprar +10 · 12 oro</button></div><div class="card page-card"><div class="panel-cap"><div><span class="eyebrow">CAPACIDAD</span><h3>Bodega</h3></div></div><div id="cellarMetrics" class="metric-list page-card-body"></div></div></div>
+        <div class="two-col stock-layout"><div class="card page-card"><div class="panel-cap"><div><span class="eyebrow">PROVEEDOR ACTUAL</span><h3>Compras y bebidas</h3></div></div><div id="supplierGrid" class="supplier-grid page-card-body"></div><div id="beverageStockGrid" class="product-stock-grid page-card-body"></div><b id="aleStock" hidden>0</b><button id="buyAle" hidden></button></div><div class="card page-card"><div class="panel-cap"><div><span class="eyebrow">CAPACIDAD</span><h3>Bodega</h3></div></div><div id="cellarMetrics" class="metric-list page-card-body"></div></div></div>
       </section>
 
       <section id="finance" class="panel">
         <div class="page-head"><div><span class="eyebrow">CONTABILIDAD</span><h1>Finanzas</h1><p>Ingresos, costes y rentabilidad de la operación.</p></div></div>
-        <div id="financeSummary" class="finance-summary"></div>
+        <div id="financeSummary" class="finance-summary"></div><div id="productPerformance" class="card product-performance"></div>
         <div class="card page-card"><div class="panel-cap"><div><span class="eyebrow">LIBRO DE JORNADAS</span><h3>Histórico</h3></div></div><div id="financeTable" class="finance-table"></div></div>
       </section>
 
@@ -236,7 +235,7 @@
     </main>
   </div>
 
-  <footer class="statusbar"><span>Tavern Keeper G · V0.6</span><span>Actualización directa · conserva la partida instalada</span><button id="resetBtn" class="link-danger">Reiniciar partida</button></footer>
+  <footer class="statusbar"><span>Tavern Keeper G · V0.7</span><span>Actualización directa · conserva la partida instalada</span><button id="resetBtn" class="link-danger">Reiniciar partida</button></footer>
 </div>
 
 
@@ -273,6 +272,11 @@
           <div class="live-section-head"><span class="eyebrow">DIRECCIÓN DE TURNO</span><b id="liveReadiness">0%</b></div>
           <p class="live-help">Toca una trabajadora para moverla al siguiente puesto compatible durante el servicio.</p>
           <div id="liveStaffDock" class="live-staff-dock"></div>
+        </section>
+
+        <section class="live-section live-stock-section">
+          <div class="live-section-head"><span class="eyebrow">STOCK EN SERVICIO</span><b id="liveStockAlert">ESTABLE</b></div>
+          <div id="liveStockGrid" class="live-stock-grid"></div>
         </section>
 
         <section class="live-section live-orders">
