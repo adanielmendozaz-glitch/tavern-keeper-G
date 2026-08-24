@@ -1,8 +1,8 @@
 {
   "name": "tavern-keeper",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "private": true,
-  "description": "Tavern Keeper G V0.9.1 hotfix: corrige inicialización de V0.9 para restaurar plantilla, mercado laboral, menú, finanzas, mejoras y apertura de jornada sin perder partida.",
+  "description": "Tavern Keeper G V0.9.2 hotfix: corrige el bloqueo de Resolver Jornada cuando aparece una decisión de gerencia durante la jornada viva.",
   "scripts": {
     "serve": "npx serve www",
     "android:add": "npx cap add android",
