@@ -1,20 +1,31 @@
-# Tavern Keeper G — V0.9.2 HOTFIX
+# Tavern Keeper G — V0.9.3 STABLE
 
-Corrige un bloqueo de la jornada viva introducido en V0.9.
+Versión de estabilización previa a seguir añadiendo contenido.
 
-## Problema
-Al llegar a ciertos momentos de la jornada puede aparecer una decisión de gerencia.
-El modal de esa decisión estaba detrás del overlay de la jornada, por lo que el juego
-quedaba esperando una respuesta invisible. Al pulsar “Resolver jornada” parecía no pasar nada.
+## Correcciones
 
-## Corrección
-- El modal de decisiones ahora se muestra por encima de la jornada viva.
-- Los avisos/toasts también se muestran por encima.
-- “Resolver jornada” vuelve a abrir la decisión pendiente si existe.
-- Conserva la partida y todas las funciones de V0.9.1.
+- Guardado automático de la jornada viva y recuperación al reabrir la app.
+- Las decisiones pendientes también reaparecen al recuperar una jornada.
+- Compras/promoción de la caravana quedan reflejadas en los gastos sin cobrarse dos veces.
+- Las visitas VIP aleatorias solo se anuncian si el cliente realmente entra; se evita generar visitas especiales demasiado tarde.
+- El pie de interfaz muestra correctamente V0.9.3.
+- Pausa, velocidad y reasignación de personal generan checkpoint.
+
+## Validación nueva
+
+`npm run check` ya no revisa solo sintaxis. Ahora también ejecuta un smoke test que valida:
+
+- arranque y render básico,
+- mercado laboral procedural,
+- todas las ramas de decisiones de gerencia,
+- una jornada completa,
+- contabilidad de gastos directos,
+- guardado/reanudación de jornada,
+- referencias a assets.
 
 ## Android
-- appId: com.alfonso.tavernkeeper
-- versionCode: 11
-- versionName: 0.9.2
+
+- appId: `com.alfonso.tavernkeeper`
+- versionCode: `12`
+- versionName: `0.9.3`
 - misma firma DEV estable

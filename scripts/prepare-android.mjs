@@ -7,8 +7,8 @@ if (!fs.existsSync(gradlePath)) {
 }
 
 let gradle = fs.readFileSync(gradlePath, 'utf8');
-gradle = gradle.replace(/versionCode\s+\d+/, 'versionCode 11');
-gradle = gradle.replace(/versionName\s+["'][^"']+["']/, 'versionName "0.9.2"');
+gradle = gradle.replace(/versionCode\s+\d+/, 'versionCode 12');
+gradle = gradle.replace(/versionName\s+["'][^"']+["']/, 'versionName "0.9.3"');
 
 if (!gradle.includes('tavernkeeper-dev.jks')) {
   gradle = gradle.replace(
@@ -22,4 +22,4 @@ if (!gradle.includes('tavernkeeper-dev.jks')) {
 }
 
 fs.writeFileSync(gradlePath, gradle);
-console.log('Android preparado: com.alfonso.tavernkeeper · versionCode 11 · versionName 0.9.2 · firma DEV estable.');
+console.log('Android preparado: com.alfonso.tavernkeeper · versionCode 12 · versionName 0.9.3 · firma DEV estable.');
