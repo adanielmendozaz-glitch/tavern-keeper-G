@@ -1,32 +1,42 @@
-# Tavern Keeper G — V0.4
+# Tavern Keeper G — V0.5
 
-V0.4 reconstruye la presentación del juego como un panel de gestión medieval serio y móvil, conservando la lógica y las partidas de V0.3.
+V0.5 convierte la taberna en una operación viva: el personal ya no es un número global, sino una plantilla asignada a puestos reales que cambian el rendimiento de cada jornada.
 
-## Cambios principales
+## Novedades V0.5
 
-- Rediseño visual completo: negro, madera, bronce y oro apagado.
-- Se elimina el aspecto de prototipo infantil en la pantalla principal.
-- Retratos semirrealistas utilizados como imagen real del personal.
-- Nueva escena principal de taberna con arte ambiental integrado.
-- Centro de mando con expediente de empleada, operación del salón, resultado financiero, inventario y rumores.
-- Plantilla actual visible desde el resumen.
-- Mercado laboral con cartas compactas y retratos.
-- Adaptación móvil específica: sin desbordamiento horizontal de página, HUD desplazable contenido y navegación compacta.
-- Interfaz de Personal, Finanzas, Cocina, Bodega y Mejoras reformada con el mismo lenguaje visual.
-- Se mantiene contratación, moral, energía, lealtad, entrenamiento, descanso, asignaciones, salarios y habilidades.
-- Migración automática de guardados anteriores a `schemaVersion 4`.
-- Se incluye favicon para evitar el 404 del navegador de desarrollo.
+- Puestos operativos: Salón, Barra, Cocina, Recepción y Despensa.
+- Asignación directa desde el expediente de cada trabajadora.
+- Descansar quita a una trabajadora del turno; activarla vuelve a incorporarla.
+- Salón influye en velocidad y satisfacción de mesas.
+- Barra influye directamente en ventas de cerveza.
+- Cocina determina la producción real de platos; sin cocinera asignada la venta de comida cae de forma fuerte.
+- Recepción mejora hospitalidad, demanda y atención VIP.
+- Despensa reduce el riesgo de merma.
+- Panel de cobertura operativa con puestos cubiertos/vacantes.
+- Personal visible sobre la escena de taberna en función del puesto asignado.
+- Indicador de aforo de la última jornada y preparación operativa.
+- Fatiga distinta según la carga del puesto.
+- La jornada registra puestos sin cubrir y la preparación del turno.
+- Migración automática de partidas V0.4 al esquema V0.5.
 
-## Prueba rápida
+## Actualización Android sin desinstalar
 
-```bash
-npm install
-npm run check
-python -m http.server 8080 -d www
-```
+El proyecto conserva el mismo `appId`: `com.alfonso.tavernkeeper`.
 
-Abre `http://127.0.0.1:8080` mientras el servidor esté activo.
+Desde V0.5, GitHub Actions usa una clave de desarrollo fija incluida en `android-dev/tavernkeeper-dev.jks`, y V0.5 usa `versionCode 5` / `versionName 0.5.0`.
 
-## Android
+Esto permite instalar V0.6, V0.7, etc. encima de V0.5 siempre que:
 
-El proyecto sigue preparado para Capacitor y para generar `app-debug.apk` con GitHub Actions al subir a `main`.
+1. se conserve el mismo `appId`;
+2. se siga usando la misma clave DEV;
+3. cada APK aumente `versionCode`.
+
+La clave incluida es deliberadamente una clave de DESARROLLO. No debe utilizarse para una futura publicación en Google Play.
+
+## Compilación
+
+Al hacer push a `main`, `.github/workflows/android-debug.yml` genera un APK Android firmado con la clave DEV estable y lo publica como artifact de GitHub Actions.
+
+## Guardado
+
+La partida se conserva en almacenamiento local de la aplicación y V0.5 migra el guardado existente automáticamente.

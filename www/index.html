@@ -74,7 +74,9 @@
                 <div class="identity-row">
                   <span id="focusAssignment" class="assignment-tag">Salón</span>
                   <span id="focusTrait" class="trait-tag">Responsable</span>
+                  <span id="focusDuty" class="status-chip good">En turno</span>
                 </div>
+                <div id="assignmentOptions" class="assignment-options" aria-label="Asignación de puesto"></div>
                 <div id="focusStats" class="stat-bars"></div>
                 <div class="worker-vitals">
                   <div><span>MORAL</span><b id="focusMorale">82</b></div>
@@ -120,8 +122,10 @@
               </div>
               <div id="sceneStaff" class="scene-staff"></div>
               <div id="sceneClients" class="scene-clients"></div>
+              <div id="sceneShift" class="scene-shift"></div>
               <div class="scene-caption"><span id="sceneStatus">La puerta aún no abre.</span></div>
             </div>
+            <div id="postBoard" class="post-board"></div>
             <div class="scene-command">
               <div>
                 <span class="eyebrow">PRÓXIMA APERTURA</span>
@@ -232,7 +236,7 @@
     </main>
   </div>
 
-  <footer class="statusbar"><span>Tavern Keeper G · V0.4</span><span>Guardado local · compatible con partida V0.3</span><button id="resetBtn" class="link-danger">Reiniciar partida</button></footer>
+  <footer class="statusbar"><span>Tavern Keeper G · V0.5</span><span>Actualización directa · conserva la partida instalada</span><button id="resetBtn" class="link-danger">Reiniciar partida</button></footer>
 </div>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>

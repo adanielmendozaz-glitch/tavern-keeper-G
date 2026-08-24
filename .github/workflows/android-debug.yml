@@ -29,17 +29,23 @@ jobs:
       - name: Create Android project
         run: npx cap add android
 
+      - name: Apply stable development signing and version
+        run: node scripts/prepare-android.mjs
+
       - name: Sync web app
         run: npx cap sync android
 
-      - name: Build debug APK
+      - name: Build signed debug APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
 
+      - name: Verify APK signature
+        run: jarsigner -verify -verbose -certs android/app/build/outputs/apk/debug/app-debug.apk | tail -n 20
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: tavern-keeper-debug-apk
+          name: tavern-keeper-G-v0.5-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
