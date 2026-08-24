@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#15100d" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>Tavern Keeper</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">REINO DE BRUMAVIEJA</p>
+        <h1>La Jarra del Cuervo</h1>
+        <p class="subtitle">Regenta tu taberna. Sobrevive a cada jornada. Hazte leyenda.</p>
+      </div>
+      <button id="saveBtn" class="icon-btn" title="Guardar">💾</button>
+    </header>
+
+    <section class="stats-grid" aria-label="Estado de la taberna">
+      <article class="stat"><span>Día</span><strong id="day">1</strong></article>
+      <article class="stat"><span>Oro</span><strong id="gold">120</strong></article>
+      <article class="stat"><span>Reputación</span><strong id="reputation">10</strong></article>
+      <article class="stat"><span>Capacidad</span><strong id="capacity">10</strong></article>
+    </section>
+
+    <nav class="tabs" aria-label="Secciones">
+      <button class="tab active" data-tab="hall">Salón</button>
+      <button class="tab" data-tab="stock">Almacén</button>
+      <button class="tab" data-tab="staff">Personal</button>
+      <button class="tab" data-tab="upgrades">Mejoras</button>
+      <button class="tab" data-tab="log">Crónica</button>
+    </nav>
+
+    <main>
+      <section id="hall" class="panel active">
+        <div class="scene-card">
+          <div class="scene-art">🍺</div>
+          <div>
+            <p class="eyebrow">ESTADO DEL NEGOCIO</p>
+            <h2 id="tavernTitle">Taberna humilde</h2>
+            <p id="statusText">Las mesas están limpias. La puerta aún no abre.</p>
+          </div>
+        </div>
+
+        <div class="card forecast-card">
+          <div class="card-title-row">
+            <h3>Rumor del día</h3>
+            <span id="forecastBadge" class="forecast-badge">Normal</span>
+          </div>
+          <p id="forecastText">Los caminos están transitados. Se espera una jornada normal.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-title-row">
+            <h3>Precios</h3>
+            <span class="hint">Influyen en demanda y reputación</span>
+          </div>
+          <div class="price-row">
+            <span>🍺 Jarra de cerveza</span>
+            <div class="stepper"><button data-price="ale" data-delta="-1">−</button><strong id="alePrice">4</strong><button data-price="ale" data-delta="1">+</button></div>
+          </div>
+          <div class="price-row">
+            <span>🍲 Plato caliente</span>
+            <div class="stepper"><button data-price="meal" data-delta="-1">−</button><strong id="mealPrice">7</strong><button data-price="meal" data-delta="1">+</button></div>
+          </div>
+        </div>
+
+        <button id="openBtn" class="primary-action">ABRIR LA TABERNA</button>
+        <p class="footnote">Abrir la taberna simula una jornada completa y avanza al siguiente día.</p>
+      </section>
+
+      <section id="stock" class="panel">
+        <div class="card resource-card">
+          <div><span class="resource-icon">🍺</span><strong id="aleStock">20</strong><small>jarras disponibles</small></div>
+          <button id="buyAle">Comprar barril +10 · 12 oro</button>
+        </div>
+        <div class="card resource-card">
+          <div><span class="resource-icon">🥩</span><strong id="foodStock">12</strong><small>raciones disponibles</small></div>
+          <button id="buyFood">Comprar provisiones +8 · 16 oro</button>
+        </div>
+        <div class="card">
+          <h3>Bodega</h3>
+          <p>Nivel <strong id="cellarLevel">1</strong>. Cada mejora aumenta el límite práctico de inventario y reduce pérdidas por mala conservación.</p>
+        </div>
+      </section>
+
+      <section id="staff" class="panel">
+        <div class="card staff-card">
+          <div><h3>🧑‍🍺 Camareros</h3><p><strong id="servers">1</strong> contratados · salario 5/día c/u</p></div>
+          <button id="hireServer">Contratar · 35 oro</button>
+        </div>
+        <div class="card staff-card">
+          <div><h3>👩‍🍳 Cocineros</h3><p><strong id="cooks">0</strong> contratados · salario 6/día c/u</p></div>
+          <button id="hireCook">Contratar · 40 oro</button>
+        </div>
+        <div class="card">
+          <h3>Servicio</h3>
+          <p id="serviceText">Tu servicio es básico. En horas pico algunos clientes esperan demasiado.</p>
+        </div>
+      </section>
+
+      <section id="upgrades" class="panel">
+        <div class="upgrade card">
+          <div><h3>🪑 Mesas y bancos</h3><p>Nivel <strong id="tablesLevel">1</strong> · +4 capacidad por nivel</p></div>
+          <button id="upgradeTables">Mejorar</button>
+        </div>
+        <div class="upgrade card">
+          <div><h3>🔥 Cocina</h3><p>Nivel <strong id="kitchenLevel">1</strong> · mejora ventas de comida</p></div>
+          <button id="upgradeKitchen">Mejorar</button>
+        </div>
+        <div class="upgrade card">
+          <div><h3>🛢️ Bodega</h3><p>Nivel <strong id="cellarLevel2">1</strong> · reduce merma</p></div>
+          <button id="upgradeCellar">Mejorar</button>
+        </div>
+      </section>
+
+      <section id="log" class="panel">
+        <div class="card">
+          <div class="card-title-row"><h3>Crónica de la taberna</h3><button id="clearLog" class="ghost">Limpiar</button></div>
+          <div id="logList" class="log-list"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Tavern Keeper V0.1</span>
+      <button id="resetBtn" class="danger-link">Reiniciar partida</button>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="game.js"></script>
+</body>
+</html>
