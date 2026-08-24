@@ -1,71 +1,38 @@
-# Tavern Keeper G — V0.8
+# Tavern Keeper G — V0.9
 
-V0.8 mantiene exactamente la línea gráfica de V0.7, pero mejora con fuerza el mercado laboral y la identidad del personal.
+V0.9 es el salto de “taberna funcional” a “negocio que crece y recibe situaciones especiales”.
 
-## Novedades principales
+## Expansión física
+- Mesas y bancos
+- Barra profesional
+- Cocina
+- Bodega
+- Decoración
+- Habitaciones
+- Salón VIP
+- Seguridad
 
-### 1) Candidatas mucho más variadas
-Cada renovación del mercado ahora intenta mezclar mejor:
+Cada mejora tiene nivel, coste, requisitos y efectos operativos. El Salón VIP exige reputación y decoración previa.
 
-- linaje
-- nombre
-- arquetipo
-- retrato
-- rol
-- rasgos
-- atuendo
-- rareza
+## Clientes especiales
+Pueden aparecer visitantes especiales durante la jornada viva: magnates, campeones, inspectoras y emisarias élficas. Gastan más, tienen menos paciencia y pueden otorgar prestigio adicional.
 
-Las candidatas dejan de sentirse como simples variaciones mínimas.
+## Eventos nocturnos con decisiones
+Durante algunas jornadas aparece una decisión de gerencia que pausa el turno. Hay varias respuestas posibles y consecuencias económicas o de reputación.
 
-### 2) Linajes
-Se introduce un sistema básico de linajes:
+Eventos incluidos:
+- pelea en el salón
+- comitiva de alto rango
+- inspección inesperada
+- trato de caravana
 
-- Humana
-- Semielfa
-- Elfa
+## Posada
+Las habitaciones ya no generan un ingreso abstracto: pueden producir huéspedes nocturnos y su ingreso queda registrado en el cierre de jornada.
 
-Las elfas son poco frecuentes. Las semielfas también son raras, pero más comunes que las elfas.
+## Compatibilidad Android
+- appId: `com.alfonso.tavernkeeper`
+- versionCode: `9`
+- versionName: `0.9.0`
+- firma DEV estable, compatible con actualización directa sobre V0.8.
 
-### 3) Arquetipos
-Además del rol (camarera / anfitriona / cocinera), cada candidata tiene ahora un arquetipo más específico, por ejemplo:
-
-- Tabernera recia
-- Anfitriona elegante
-- Bardo de salón
-- Sirvienta noble
-- Exploradora élfica
-- Cocinera rústica
-- Chef cortesana
-- Herbolaria élfica
-- Maestra cervecera
-
-### 4) Información visible en UI
-Las fichas de contratación y del personal muestran mejor:
-
-- linaje
-- arquetipo
-- atuendo
-- rasgo visual
-
-### 5) Mercado laboral dinámico mejorado
-Las renovaciones pueden mostrar 3 a 5 candidatas.
-
-Siguen existiendo rarezas:
-
-- Común
-- Competente
-- Experta
-- Élite
-- Prodigio
-- Genio
-
-Y ahora también hay anuncios especiales cuando llega una elfa, una Prodigio o una Genio.
-
-## Compatibilidad
-
-- `appId`: `com.alfonso.tavernkeeper`
-- `versionCode`: `8`
-- `versionName`: `0.8.0`
-
-Debe instalarse como actualización directa sobre V0.7, conservando la partida local.
+Artifact de GitHub Actions: `tavern-keeper-G-v0.9-apk`.

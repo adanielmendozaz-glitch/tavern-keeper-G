@@ -125,7 +125,7 @@
               <div id="sceneShift" class="scene-shift"></div>
               <div class="scene-caption"><span id="sceneStatus">La puerta aún no abre.</span></div>
             </div>
-            <div id="postBoard" class="post-board"></div>
+            <div id="postBoard" class="post-board"></div><div id="facilityStatus" class="facility-status"></div>
             <div class="scene-command">
               <div>
                 <span class="eyebrow">PRÓXIMA APERTURA</span>
@@ -199,7 +199,7 @@
 
       <section id="customers" class="panel">
         <div class="page-head"><div><span class="eyebrow">CLIENTELA</span><h1>Clientes</h1><p>Composición de la demanda y segmentos de mayor valor.</p></div></div>
-        <div id="customerCards" class="customer-cards"></div>
+        <div id="specialGuestSummary" class="special-guest-summary"></div><div id="customerCards" class="customer-cards"></div>
       </section>
 
       <section id="kitchen" class="panel">
@@ -220,7 +220,7 @@
 
       <section id="upgrades" class="panel">
         <div class="page-head"><div><span class="eyebrow">CAPEX</span><h1>Mejoras</h1><p>Invierte en capacidad, producción, almacenamiento, decoración y habitaciones.</p></div></div>
-        <div id="upgradeGrid" class="upgrade-grid"></div>
+        <div id="expansionSummary" class="expansion-summary"></div><div id="upgradeGrid" class="upgrade-grid"></div>
       </section>
 
       <section id="rumors" class="panel">
@@ -235,7 +235,7 @@
     </main>
   </div>
 
-  <footer class="statusbar"><span>Tavern Keeper G · V0.8</span><span>Actualización directa · conserva la partida instalada</span><button id="resetBtn" class="link-danger">Reiniciar partida</button></footer>
+  <footer class="statusbar"><span>Tavern Keeper G · V0.9</span><span>Actualización directa · conserva la partida instalada</span><button id="resetBtn" class="link-danger">Reiniciar partida</button></footer>
 </div>
 
 
@@ -279,6 +279,11 @@
           <div id="liveStockGrid" class="live-stock-grid"></div>
         </section>
 
+        <section class="live-section live-special-section">
+          <div class="live-section-head"><span class="eyebrow">CLIENTES ESPECIALES</span><b id="liveVipCount">0 atendidos</b></div>
+          <div id="liveSpecialPanel" class="live-special-panel"><span>Aún no hay visitas especiales.</span></div>
+        </section>
+
         <section class="live-section live-orders">
           <div class="live-section-head"><span class="eyebrow">OPERACIÓN</span><b id="liveWaiting">0 esperando</b></div>
           <div class="live-operational-grid">
@@ -308,6 +313,16 @@
   </div>
 </div>
 
+
+<div id="eventDecisionModal" class="event-decision-modal" aria-hidden="true">
+  <div class="event-decision-card">
+    <span class="eyebrow">DECISIÓN DE GERENCIA</span>
+    <h3 id="eventDecisionTitle">Evento nocturno</h3>
+    <p id="eventDecisionText"></p>
+    <div id="eventDecisionMeta" class="event-decision-meta"></div>
+    <div id="eventDecisionChoices" class="event-decision-choices"></div>
+  </div>
+</div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <div id="confirmModal" class="modal" aria-hidden="true"><div class="modal-card"><span class="eyebrow">CONFIRMACIÓN</span><h3 id="modalTitle">Confirmar</h3><p id="modalText"></p><div><button id="modalCancel">Cancelar</button><button id="modalConfirm" class="danger">Confirmar</button></div></div></div>
 <script src="game.js"></script>
