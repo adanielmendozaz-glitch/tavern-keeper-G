@@ -1,348 +1,83 @@
-const SAVE_KEY = 'tavernKeeper_save';
-const SAVE_SCHEMA = 1;
-
-const FORECASTS = [
-  { id: 'quiet', label: 'Tranquilo', mod: 0.82, text: 'Llueve sobre Brumavieja y pocos viajeros se aventuran por los caminos.' },
-  { id: 'normal', label: 'Normal', mod: 1.0, text: 'Los caminos están transitados. Se espera una jornada normal.' },
-  { id: 'market', label: 'Mercado', mod: 1.22, text: 'Hay mercado en la plaza. Comerciantes y campesinos buscarán mesa al caer la tarde.' },
-  { id: 'caravan', label: 'Caravana', mod: 1.15, text: 'Una caravana llegó a la villa. Los viajeros traen sed, hambre y algo de oro.' },
-  { id: 'guard', label: 'Guardia', mod: 1.08, text: 'Cambio de guardia en la fortaleza. Habrá soldados buscando comida y cerveza.' }
+const SAVE_KEY='tavernKeeper_save';const SAVE_SCHEMA=4;
+const FORECASTS=[
+{id:'quiet',label:'Lluvia',mod:.82,segment:'Campesinos',text:'Llueve sobre Brumavieja. Los caminos están pesados y habrá menos viajeros.',impact:'Demanda aproximada −18%. Menos mercaderes y aventureros.'},
+{id:'normal',label:'Jornada normal',mod:1,segment:'Mixto',text:'Los caminos están transitados y no hay acontecimientos extraordinarios.',impact:'Demanda estable. Buena jornada para medir el rendimiento real de tu plantilla.'},
+{id:'market',label:'Día de mercado',mod:1.22,segment:'Mercaderes',text:'La plaza está llena de comerciantes, artesanos y campesinos.',impact:'Demanda aproximada +22%. Aumenta la presencia de mercaderes.'},
+{id:'caravan',label:'Caravana',mod:1.15,segment:'Aventureros',text:'Una caravana de viajeros ha llegado a la villa buscando comida, camas y cerveza.',impact:'Demanda aproximada +15%. Más aventureros y viajeros.'},
+{id:'guard',label:'Cambio de guardia',mod:1.08,segment:'Guardias',text:'La fortaleza cambia de turno. Los soldados buscarán comida caliente y bebida.',impact:'Demanda aproximada +8%. Aumenta la presencia de guardias.'}
 ];
-
-function makeForecast() {
-  const weights = [0.14, 0.42, 0.17, 0.15, 0.12];
-  let roll = Math.random();
-  for (let i = 0; i < FORECASTS.length; i++) {
-    roll -= weights[i];
-    if (roll <= 0) return { ...FORECASTS[i] };
-  }
-  return { ...FORECASTS[1] };
-}
-
-const initialState = () => ({
-  schemaVersion: SAVE_SCHEMA,
-  day: 1,
-  gold: 120,
-  reputation: 10,
-  ale: 20,
-  food: 12,
-  servers: 1,
-  cooks: 0,
-  prices: { ale: 4, meal: 7 },
-  upgrades: { tables: 1, kitchen: 1, cellar: 1 },
-  forecast: makeForecast(),
-  lifetime: { customers: 0, revenue: 0, profit: 0 },
-  lastDay: null,
-  log: [
-    { day: 0, title: 'Llegas a Brumavieja', text: 'Has heredado una taberna pequeña, unas cuantas monedas y un letrero que cruje con el viento.' }
-  ]
-});
-
-let state = load();
-let toastTimer;
-
-function load() {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return initialState();
-    const parsed = JSON.parse(raw);
-    const fresh = initialState();
-    return {
-      ...fresh,
-      ...parsed,
-      schemaVersion: SAVE_SCHEMA,
-      prices: { ...fresh.prices, ...(parsed.prices || {}) },
-      upgrades: { ...fresh.upgrades, ...(parsed.upgrades || {}) },
-      forecast: parsed.forecast?.id ? parsed.forecast : fresh.forecast,
-      lifetime: { ...fresh.lifetime, ...(parsed.lifetime || {}) },
-      log: Array.isArray(parsed.log) ? parsed.log : fresh.log
-    };
-  } catch {
-    return initialState();
-  }
-}
-
-function save(showToast = false) {
-  state.schemaVersion = SAVE_SCHEMA;
-  localStorage.setItem(SAVE_KEY, JSON.stringify(state));
-  if (showToast) toast('Partida guardada');
-}
-
-function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
-function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-function chance(p) { return Math.random() < p; }
-function capacity() { return 6 + state.upgrades.tables * 4; }
-function cellarSoftCap() { return 24 + state.upgrades.cellar * 16; }
-function wages() { return state.servers * 5 + state.cooks * 6; }
-
-function upgradeCost(type) {
-  const base = { tables: 45, kitchen: 55, cellar: 50 }[type];
-  return base * state.upgrades[type];
-}
-
-function serviceScore(customers) {
-  const labor = state.servers * 7 + state.cooks * 5 + state.upgrades.kitchen * 2;
-  return clamp(0.55 + labor / Math.max(18, customers * 3), 0.5, 1.25);
-}
-
-function demandModifier() {
-  const alePricePenalty = Math.max(0, state.prices.ale - 5) * 0.055;
-  const mealPricePenalty = Math.max(0, state.prices.meal - 8) * 0.04;
-  const cheapBonus = (state.prices.ale <= 3 ? 0.05 : 0) + (state.prices.meal <= 6 ? 0.04 : 0);
-  return clamp(1 - alePricePenalty - mealPricePenalty + cheapBonus, 0.42, 1.2);
-}
-
-function log(title, text, day = state.day) {
-  state.log.unshift({ day, title, text });
-  state.log = state.log.slice(0, 100);
-}
-
-function buy(kind, amount, cost, label) {
-  if (state.gold < cost) return toast('No tienes suficiente oro');
-  const newStock = state[kind] + amount;
-  const softCap = cellarSoftCap();
-  if (newStock > softCap + 10) return toast('La bodega está demasiado llena');
-  state.gold -= cost;
-  state[kind] = newStock;
-  log('Compra de provisiones', `${label}: +${amount}. Pagaste ${cost} de oro.`);
-  save();
-  render();
-}
-
-function hire(role) {
-  const data = role === 'servers'
-    ? { cost: 35, label: 'camarero' }
-    : { cost: 40, label: 'cocinero' };
-  if (state.gold < data.cost) return toast('No tienes suficiente oro');
-  state.gold -= data.cost;
-  state[role] += 1;
-  log('Nuevo contrato', `Contrataste un ${data.label}. Recuerda que cobrará salario al final de cada jornada.`);
-  save();
-  render();
-}
-
-function upgrade(type) {
-  const cost = upgradeCost(type);
-  if (state.gold < cost) return toast(`Necesitas ${cost} de oro`);
-  state.gold -= cost;
-  state.upgrades[type] += 1;
-  const names = { tables: 'Mesas y bancos', kitchen: 'Cocina', cellar: 'Bodega' };
-  log('Mejora completada', `${names[type]} sube a nivel ${state.upgrades[type]}. Coste: ${cost} oro.`);
-  save();
-  render();
-}
-
-function eventForDay(customers) {
-  const roll = Math.random();
-  if (roll < 0.10) {
-    const tip = rand(8, 18);
-    state.gold += tip;
-    state.reputation += 1;
-    return `Un mercader satisfecho dejó ${tip} de oro extra y habló bien de la casa.`;
-  }
-  if (roll < 0.18) {
-    const loss = Math.min(Math.max(0, state.gold), rand(6, 14));
-    state.gold -= loss;
-    state.reputation = Math.max(0, state.reputation - 1);
-    return `Una pelea rompió vajilla. Reparaciones: ${loss} de oro.`;
-  }
-  if (roll < 0.25 && customers >= 7) {
-    state.reputation += 2;
-    return 'Un bardo improvisó una canción sobre tu taberna. +2 reputación.';
-  }
-  if (roll < 0.31 && state.food > 4) {
-    const loss = Math.min(state.food, rand(2, 5));
-    state.food -= loss;
-    return `Ratas en la despensa: perdiste ${loss} raciones.`;
-  }
-  if (roll < 0.36) {
-    state.reputation += 1;
-    return 'Un grupo de aventureros eligió tu salón como punto de reunión. +1 reputación.';
-  }
-  return null;
-}
-
-function openTavern() {
-  const repPull = 4 + state.reputation * 0.34;
-  const randomPull = rand(-2, 6);
-  const forecastMod = state.forecast?.mod || 1;
-  let visitors = Math.round((repPull + randomPull) * demandModifier() * forecastMod);
-  visitors = clamp(visitors, 1, capacity());
-
-  const service = serviceScore(visitors);
-  const aleBuyChance = clamp(0.68 + state.reputation * 0.004 - Math.max(0, state.prices.ale - 4) * 0.055, 0.2, 0.9);
-  const foodBuyChance = clamp(0.38 + state.cooks * 0.07 + state.upgrades.kitchen * 0.035 - Math.max(0, state.prices.meal - 7) * 0.04, 0.1, 0.82);
-
-  let aleSold = 0;
-  let mealsSold = 0;
-  let unhappy = 0;
-
-  for (let i = 0; i < visitors; i++) {
-    if (chance(aleBuyChance)) {
-      if (state.ale > 0) { state.ale--; aleSold++; } else unhappy++;
-    }
-    if (chance(foodBuyChance)) {
-      if (state.food > 0) { state.food--; mealsSold++; } else unhappy++;
-    }
-    if (service < 0.78 && chance(0.26)) unhappy++;
-  }
-
-  const revenue = aleSold * state.prices.ale + mealsSold * state.prices.meal;
-  const salary = wages();
-  const operatingNet = revenue - salary;
-  state.gold += operatingNet;
-
-  let repDelta = 0;
-  if (unhappy === 0 && service >= 0.92) repDelta += 2;
-  else if (unhappy <= 2 && service >= 0.78) repDelta += 1;
-  else if (unhappy >= 5) repDelta -= 2;
-  else if (unhappy >= 3) repDelta -= 1;
-
-  if (state.prices.ale >= 8 || state.prices.meal >= 13) repDelta -= 1;
-  if (state.gold < 0) repDelta -= 1;
-  state.reputation = clamp(state.reputation + repDelta, 0, 100);
-
-  const cap = cellarSoftCap();
-  let spoilage = 0;
-  if (state.food > cap && chance(0.45)) {
-    spoilage = Math.min(state.food - cap, rand(1, 3));
-    state.food -= spoilage;
-  }
-
-  const goldBeforeEvent = state.gold;
-  const event = eventForDay(visitors);
-  const eventGoldDelta = state.gold - goldBeforeEvent;
-  const finalNet = operatingNet + eventGoldDelta;
-
-  state.lifetime.customers += visitors;
-  state.lifetime.revenue += revenue;
-  state.lifetime.profit += finalNet;
-  state.lastDay = {
-    day: state.day,
-    visitors,
-    aleSold,
-    mealsSold,
-    revenue,
-    salary,
-    net: finalNet,
-    unhappy,
-    forecast: state.forecast.label
-  };
-
-  let text = `${visitors} clientes · ${aleSold} cervezas · ${mealsSold} platos · ingresos ${revenue} · salarios ${salary} · balance ${finalNet >= 0 ? '+' : ''}${finalNet}.`;
-  if (repDelta) text += ` Reputación ${repDelta > 0 ? '+' : ''}${repDelta}.`;
-  if (spoilage) text += ` Merma: ${spoilage} raciones.`;
-  if (event) text += ` Evento: ${event}`;
-
-  log(`Jornada ${state.day} · ${state.forecast.label}`, text);
-  state.day += 1;
-  state.forecast = makeForecast();
-  save();
-  render();
-  toast(finalNet >= 0 ? `Jornada cerrada: +${finalNet} oro` : `Jornada cerrada: ${finalNet} oro`);
-}
-
-function changePrice(kind, delta) {
-  const limits = kind === 'ale' ? [2, 12] : [4, 18];
-  state.prices[kind] = clamp(state.prices[kind] + delta, ...limits);
-  save();
-  render();
-}
-
-function render() {
-  document.getElementById('day').textContent = state.day;
-  document.getElementById('gold').textContent = state.gold;
-  document.getElementById('reputation').textContent = state.reputation;
-  document.getElementById('capacity').textContent = capacity();
-  document.getElementById('aleStock').textContent = state.ale;
-  document.getElementById('foodStock').textContent = state.food;
-  document.getElementById('servers').textContent = state.servers;
-  document.getElementById('cooks').textContent = state.cooks;
-  document.getElementById('alePrice').textContent = state.prices.ale;
-  document.getElementById('mealPrice').textContent = state.prices.meal;
-  document.getElementById('tablesLevel').textContent = state.upgrades.tables;
-  document.getElementById('kitchenLevel').textContent = state.upgrades.kitchen;
-  document.getElementById('cellarLevel').textContent = state.upgrades.cellar;
-  document.getElementById('cellarLevel2').textContent = state.upgrades.cellar;
-  document.getElementById('forecastBadge').textContent = state.forecast.label;
-  document.getElementById('forecastBadge').dataset.kind = state.forecast.id;
-  document.getElementById('forecastText').textContent = state.forecast.text;
-
-  const tableCost = upgradeCost('tables');
-  const kitchenCost = upgradeCost('kitchen');
-  const cellarCost = upgradeCost('cellar');
-  document.getElementById('upgradeTables').textContent = `Mejorar · ${tableCost} oro`;
-  document.getElementById('upgradeKitchen').textContent = `Mejorar · ${kitchenCost} oro`;
-  document.getElementById('upgradeCellar').textContent = `Mejorar · ${cellarCost} oro`;
-  document.getElementById('upgradeTables').disabled = state.gold < tableCost;
-  document.getElementById('upgradeKitchen').disabled = state.gold < kitchenCost;
-  document.getElementById('upgradeCellar').disabled = state.gold < cellarCost;
-  document.getElementById('buyAle').disabled = state.gold < 12;
-  document.getElementById('buyFood').disabled = state.gold < 16;
-  document.getElementById('hireServer').disabled = state.gold < 35;
-  document.getElementById('hireCook').disabled = state.gold < 40;
-
-  const score = serviceScore(Math.max(6, capacity()));
-  document.getElementById('serviceText').textContent = score >= 1
-    ? 'Tu plantilla puede mantener un servicio rápido incluso con el salón lleno.'
-    : score >= 0.78
-      ? 'El servicio es aceptable, pero una jornada fuerte puede ponerlo bajo presión.'
-      : 'Falta personal. Las esperas pueden costarte reputación.';
-
-  const title = state.reputation >= 60 ? 'Posada legendaria'
-    : state.reputation >= 35 ? 'Taberna célebre'
-    : state.reputation >= 20 ? 'Taberna concurrida'
-    : 'Taberna humilde';
-  document.getElementById('tavernTitle').textContent = title;
-
-  const debtNote = state.gold < 0 ? ' Estás endeudado: necesitas una buena jornada.' : '';
-  document.getElementById('statusText').textContent = `Tienes ${state.ale} jarras, ${state.food} raciones y pagarás ${wages()} de oro en salarios al cerrar la próxima jornada.${debtNote}`;
-
-  const logList = document.getElementById('logList');
-  logList.innerHTML = state.log.length
-    ? state.log.map(item => `<div class="log-item"><strong>${escapeHtml(item.title)}</strong><p>${escapeHtml(item.text)}</p></div>`).join('')
-    : '<p>No hay anotaciones.</p>';
-}
-
-function escapeHtml(str) {
-  return String(str).replace(/[&<>'"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[ch]));
-}
-
-function toast(message) {
-  const el = document.getElementById('toast');
-  el.textContent = message;
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 1900);
-}
-
-for (const tab of document.querySelectorAll('.tab')) {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById(tab.dataset.tab).classList.add('active');
-  });
-}
-
-document.querySelectorAll('[data-price]').forEach(btn => btn.addEventListener('click', () => changePrice(btn.dataset.price, Number(btn.dataset.delta))));
-document.getElementById('buyAle').addEventListener('click', () => buy('ale', 10, 12, 'Barril de cerveza'));
-document.getElementById('buyFood').addEventListener('click', () => buy('food', 8, 16, 'Provisiones'));
-document.getElementById('hireServer').addEventListener('click', () => hire('servers'));
-document.getElementById('hireCook').addEventListener('click', () => hire('cooks'));
-document.getElementById('upgradeTables').addEventListener('click', () => upgrade('tables'));
-document.getElementById('upgradeKitchen').addEventListener('click', () => upgrade('kitchen'));
-document.getElementById('upgradeCellar').addEventListener('click', () => upgrade('cellar'));
-document.getElementById('openBtn').addEventListener('click', openTavern);
-document.getElementById('saveBtn').addEventListener('click', () => save(true));
-document.getElementById('clearLog').addEventListener('click', () => { state.log = []; save(); render(); });
-document.getElementById('resetBtn').addEventListener('click', () => {
-  if (confirm('¿Seguro que quieres borrar la partida y empezar de cero?')) {
-    state = initialState();
-    save();
-    render();
-    toast('Nueva partida creada');
-  }
-});
-
-render();
+const CANDIDATE_CATALOG=[
+{id:'luna',name:'Luna',role:'server',roleLabel:'Camarera',sprite:'assets/sprites/luna.svg',portrait:'assets/portraits/luna.webp',wage:14,hireCost:65,service:69,charisma:91,speed:71,stamina:62,rarity:'Competente',rarityClass:'competent',trait:'Sociable',ability:'Una ronda más',abilityId:'extraAle',abilityText:'Los clientes satisfechos tienen más probabilidad de pedir otra bebida.',assignment:'barra',minRep:10},
+{id:'mira',name:'Mira',role:'cook',roleLabel:'Cocinera',sprite:'assets/sprites/mira.svg',portrait:'assets/portraits/mira.webp',wage:16,hireCost:85,service:48,charisma:55,speed:67,stamina:82,cooking:88,discipline:90,rarity:'Experta',rarityClass:'expert',trait:'Metódica',ability:'Mise en place',abilityId:'mise',abilityText:'Reduce mucho el riesgo de merma y mejora la producción de cocina.',assignment:'cocina',minRep:12},
+{id:'kaia',name:'Kaia',role:'server',roleLabel:'Camarera',sprite:'assets/sprites/kaia.svg',portrait:'assets/portraits/kaia.webp',wage:13,hireCost:70,service:73,charisma:62,speed:94,stamina:78,rarity:'Competente',rarityClass:'competent',trait:'Competitiva',ability:'Paso ligero',abilityId:'swift',abilityText:'Su velocidad sostiene el servicio cuando el salón está cerca del aforo máximo.',assignment:'salon',minRep:10},
+{id:'sophie',name:'Sophie',role:'server',roleLabel:'Anfitriona',sprite:'assets/sprites/sophie.svg',portrait:'assets/portraits/sophie.webp',wage:20,hireCost:130,service:78,charisma:94,speed:60,stamina:64,elegance:92,rarity:'Élite',rarityClass:'elite',trait:'Refinada',ability:'Atención distinguida',abilityId:'vip',abilityText:'Los nobles y clientes VIP gastan más y valoran mejor la taberna.',assignment:'recepcion',minRep:35},
+{id:'nara',name:'Nara',role:'cook',roleLabel:'Cocinera',sprite:'assets/sprites/nara.svg',portrait:'assets/portraits/nara.webp',wage:15,hireCost:90,service:58,charisma:67,speed:60,stamina:70,cooking:79,creativity:92,rarity:'Experta',rarityClass:'expert',trait:'Creativa',ability:'Especial del día',abilityId:'special',abilityText:'Puede crear un plato especial que añade ingresos extra a una buena jornada.',assignment:'cocina',minRep:18}
+];
+const CUSTOMER_TYPES={peasants:{label:'Campesinos',icon:'C'},merchants:{label:'Mercaderes',icon:'M'},adventurers:{label:'Aventureros',icon:'A'},guards:{label:'Guardias',icon:'G'},nobles:{label:'Nobles',icon:'N'}};
+function makeForecast(){const w=[.14,.42,.17,.15,.12];let r=Math.random();for(let i=0;i<FORECASTS.length;i++){r-=w[i];if(r<=0)return{...FORECASTS[i]}}return{...FORECASTS[1]}}
+function makeWorker(base,extra={}){return{...base,catalogId:base.id,id:extra.id||`${base.id}-${Date.now()}-${Math.random().toString(16).slice(2,6)}`,level:extra.level??base.level??1,xp:extra.xp??0,morale:extra.morale??base.morale??72,energy:extra.energy??100,loyalty:extra.loyalty??base.loyalty??60,active:extra.active??true,talkedDay:extra.talkedDay||0,giftedDay:extra.giftedDay||0,assignment:extra.assignment||base.assignment||(base.role==='cook'?'cocina':'salon'),...extra}}
+const ELENA_BASE={id:'elena',name:'Elena',role:'server',roleLabel:'Camarera principal',sprite:'assets/sprites/elena.svg',portrait:'assets/portraits/elena.webp',wage:12,service:82,charisma:76,speed:74,stamina:68,rarity:'Experta',rarityClass:'expert',trait:'Responsable',ability:'Servicio cálido',abilityId:'warm',abilityText:'Mejora ligeramente la satisfacción y la estabilidad del servicio general.',assignment:'salon',level:3,morale:82,loyalty:68};
+const initialState=()=>({schemaVersion:SAVE_SCHEMA,day:1,gold:120,reputation:10,ale:20,food:12,prices:{ale:4,meal:7},upgrades:{tables:1,kitchen:1,cellar:1,decor:1,rooms:0},forecast:makeForecast(),staff:[makeWorker(ELENA_BASE,{id:'elena-main',level:3,morale:82,loyalty:68})],candidates:['luna','kaia','mira'],selectedWorkerId:'elena-main',financeHistory:[],customerHistory:[],lifetime:{customers:0,revenue:0,profit:0,expenses:0},lastDay:null,log:[{day:0,title:'Llegas a Brumavieja',text:'Has heredado una taberna pequeña. Elena, una camarera local, acepta ayudarte a ponerla en marcha.'}]});
+let state=load(),toastTimer,modalAction=null;
+function catalogForWorker(w){const id=w.catalogId||String(w.id||'').split('-')[0];return id==='elena'?ELENA_BASE:CANDIDATE_CATALOG.find(c=>c.id===id)||CANDIDATE_CATALOG.find(c=>c.name===w.name)}
+function migrate(parsed){const fresh=initialState();const s={...fresh,...parsed,schemaVersion:SAVE_SCHEMA,prices:{...fresh.prices,...(parsed.prices||{})},upgrades:{...fresh.upgrades,...(parsed.upgrades||{})},lifetime:{...fresh.lifetime,...(parsed.lifetime||{})},financeHistory:Array.isArray(parsed.financeHistory)?parsed.financeHistory:[],customerHistory:Array.isArray(parsed.customerHistory)?parsed.customerHistory:[],log:Array.isArray(parsed.log)?parsed.log:fresh.log};if(!Array.isArray(parsed.staff)){s.staff=[makeWorker(ELENA_BASE,{id:'elena-main',level:3,morale:82,loyalty:68})];const extraServers=Math.max(0,(Number(parsed.servers)||1)-1);const extraCooks=Math.max(0,Number(parsed.cooks)||0);for(let i=0;i<extraServers;i++)s.staff.push(makeWorker(CANDIDATE_CATALOG.find(x=>x.role==='server'),{id:`legacy-server-${i}`,name:`Camarera ${i+2}`}));for(let i=0;i<extraCooks;i++)s.staff.push(makeWorker(CANDIDATE_CATALOG.find(x=>x.role==='cook'),{id:`legacy-cook-${i}`,name:`Cocinera ${i+1}`}));s.log.unshift({day:s.day,title:'Partida migrada',text:'Tu progreso anterior se conservó y el personal fue convertido al nuevo sistema de personajes.'})}else{s.staff=parsed.staff.map(w=>{const base=catalogForWorker(w)||w;return makeWorker(base,{...w,catalogId:base.id||w.catalogId,portrait:base.portrait||w.portrait,sprite:base.sprite||w.sprite,wage:base.wage??w.wage,rarity:base.rarity||w.rarity,rarityClass:base.rarityClass||w.rarityClass,trait:base.trait||w.trait,ability:base.ability||w.ability,abilityId:base.abilityId||w.abilityId,abilityText:base.abilityText||w.abilityText,assignment:w.assignment||base.assignment,loyalty:w.loyalty??65,service:Math.max(w.service||0,base.service||0),charisma:Math.max(w.charisma||0,base.charisma||0),speed:Math.max(w.speed||0,base.speed||0),stamina:Math.max(w.stamina||0,base.stamina||0)})});if(parsed.schemaVersion<3)s.log.unshift({day:s.day,title:'Actualización V0.3',text:'La plantilla ahora tiene retratos, rareza, lealtad, habilidades y asignaciones de trabajo.'})}if((parsed.schemaVersion||0)<4)s.log.unshift({day:s.day,title:'Actualización V0.4',text:'La interfaz fue reconstruida como un centro de mando de gestión, conservando toda tu partida y personal.'});if(!Array.isArray(s.candidates)||!s.candidates.length)s.candidates=['luna','kaia','mira'];if(!s.selectedWorkerId||!s.staff.some(w=>w.id===s.selectedWorkerId))s.selectedWorkerId=s.staff[0]?.id||null;return s}
+function load(){try{const raw=localStorage.getItem(SAVE_KEY);return raw?migrate(JSON.parse(raw)):initialState()}catch{return initialState()}}
+function save(show=false){state.schemaVersion=SAVE_SCHEMA;localStorage.setItem(SAVE_KEY,JSON.stringify(state));if(show)toast('Partida guardada')}
+const clamp=(n,min,max)=>Math.max(min,Math.min(max,n)),rand=(min,max)=>Math.floor(Math.random()*(max-min+1))+min,chance=p=>Math.random()<p;
+function capacity(){return 6+state.upgrades.tables*4}function cellarSoftCap(){return 24+state.upgrades.cellar*16}function activeStaff(){return state.staff.filter(w=>w.active)}function servers(){return activeStaff().filter(w=>w.role==='server')}function cooks(){return activeStaff().filter(w=>w.role==='cook')}function wages(){return state.staff.reduce((a,w)=>a+w.wage,0)}function hasAbility(id){return activeStaff().some(w=>w.abilityId===id)}function workersWithAbility(id){return activeStaff().filter(w=>w.abilityId===id)}
+function avg(arr,key){return arr.length?arr.reduce((a,x)=>a+x[key],0)/arr.length:0}function season(){const n=Math.floor((state.day-1)/30)%4;return['Primavera','Verano','Otoño','Invierno'][n]}
+function workerEfficiency(w){const energy=.55+.45*(w.energy/100),morale=.7+.3*(w.morale/100),loyalty=.85+.15*((w.loyalty??60)/100),level=1+(w.level-1)*.04;return energy*morale*loyalty*level}
+function serviceScore(customers){const sv=servers();const ck=cooks();const labor=sv.reduce((a,w)=>{const assign=w.assignment==='salon'?1.08:w.assignment==='barra'?1.03:.96;const swift=w.abilityId==='swift'?1.12:1;return a+(w.service*.055+w.speed*.035)*workerEfficiency(w)*assign*swift},0)+ck.reduce((a,w)=>a+w.speed*.018*workerEfficiency(w),0)+state.upgrades.kitchen*1.7+(hasAbility('warm')?1.8:0);return clamp(.52+labor/Math.max(16,customers*2.6),.45,1.3)}
+function kitchenPower(){return state.upgrades.kitchen*8+cooks().reduce((a,w)=>a+(w.speed+w.stamina+(w.cooking||0)*.35)*.18*workerEfficiency(w)*(w.assignment==='cocina'?1.1:.95),0)+(hasAbility('mise')?4:0)}function hospitalityPower(){return servers().reduce((a,w)=>a+(w.charisma+w.service)*.16*workerEfficiency(w)*(w.assignment==='recepcion'?1.12:1),0)+state.upgrades.decor*4+(hasAbility('vip')?5:0)}
+function demandModifier(){const a=Math.max(0,state.prices.ale-5)*.055,m=Math.max(0,state.prices.meal-8)*.04,cheap=(state.prices.ale<=3?.05:0)+(state.prices.meal<=6?.04:0),decor=1+(state.upgrades.decor-1)*.025;return clamp((1-a-m+cheap)*decor,.4,1.3)}
+function log(title,text,day=state.day){state.log.unshift({day,title,text});state.log=state.log.slice(0,150)}
+function upgradeCost(type){const base={tables:45,kitchen:55,cellar:50,decor:65,rooms:90}[type];const level=state.upgrades[type]||0;return Math.round(base*Math.max(1,level+(.35*(level>0))))}
+function buy(kind,amount,cost,label){if(state.gold<cost)return toast('No tienes suficiente oro');if(state[kind]+amount>cellarSoftCap()+12)return toast('La bodega está demasiado llena');state.gold-=cost;state[kind]+=amount;log('Compra de provisiones',`${label}: +${amount}. Pagaste ${cost} de oro.`);save();render()}
+function changePrice(kind,delta){const lim=kind==='ale'?[2,12]:[4,18];state.prices[kind]=clamp(state.prices[kind]+delta,...lim);save();render()}
+function upgrade(type){const cost=upgradeCost(type);if(state.gold<cost)return toast(`Necesitas ${cost} de oro`);state.gold-=cost;state.upgrades[type]=(state.upgrades[type]||0)+1;const names={tables:'Mesas y bancos',kitchen:'Cocina',cellar:'Bodega',decor:'Decoración',rooms:'Habitaciones'};log('Mejora completada',`${names[type]} sube a nivel ${state.upgrades[type]}. Coste: ${cost} oro.`);save();render()}
+function candidateById(id){return CANDIDATE_CATALOG.find(c=>c.id===id)}
+function hireCandidate(id){const c=candidateById(id);if(!c)return;if(state.gold<c.hireCost)return toast('No tienes suficiente oro');state.gold-=c.hireCost;const w=makeWorker(c,{id:`${c.id}-${Date.now()}`,morale:rand(65,82),energy:100,loyalty:rand(55,72)});state.staff.push(w);state.candidates=state.candidates.filter(x=>x!==id);state.selectedWorkerId=w.id;log('Nueva contratación',`${c.name} se une como ${c.roleLabel.toLowerCase()}. Coste de contratación: ${c.hireCost} oro; salario ${c.wage}/día.`);save();render();toast(`${c.name} se une a la plantilla`)}
+function refreshCandidates(){if(state.gold<8)return toast('Necesitas 8 de oro');state.gold-=8;const hired=new Set(state.staff.map(w=>w.catalogId||String(w.id).split('-')[0]));let pool=CANDIDATE_CATALOG.filter(c=>!hired.has(c.id)&&state.reputation>=c.minRep);if(pool.length<3)pool=CANDIDATE_CATALOG.filter(c=>state.reputation>=c.minRep);state.candidates=shuffle(pool.map(x=>x.id)).slice(0,Math.min(3,pool.length));log('Mercado laboral','Pagaste 8 de oro a un reclutador. La reputación de la taberna determina la calidad de las candidatas disponibles.');save();render()}
+function shuffle(a){return[...a].sort(()=>Math.random()-.5)}
+function selectedWorker(){return state.staff.find(w=>w.id===state.selectedWorkerId)||state.staff[0]}
+function selectWorker(id){state.selectedWorkerId=id;save();render()}
+function talkWorker(){const w=selectedWorker();if(!w)return;if(w.talkedDay===state.day)return toast('Ya hablaste con ella hoy');w.morale=clamp(w.morale+rand(6,12),0,100);w.loyalty=clamp((w.loyalty??60)+2,0,100);w.talkedDay=state.day;log('Conversación',`Hablaste con ${w.name}. Su moral y lealtad mejoraron.`);save();render();toast(`${w.name}: moral y lealtad +`)}
+function giftWorker(){const w=selectedWorker();if(!w)return;if(w.giftedDay===state.day)return toast('Ya le diste un regalo hoy');if(state.gold<10)return toast('El regalo cuesta 10 de oro');state.gold-=10;w.morale=clamp(w.morale+8,0,100);w.loyalty=clamp((w.loyalty??60)+5,0,100);w.giftedDay=state.day;log('Regalo',`Diste un pequeño regalo a ${w.name}. Lealtad +5.`);save();render();toast(`${w.name}: lealtad +5`)}
+function assignWorker(){const w=selectedWorker();if(!w)return;const options=w.role==='cook'?['cocina','despensa']:w.roleLabel==='Anfitriona'?['recepcion','salon','barra']:['salon','barra','recepcion'];const i=options.indexOf(w.assignment);w.assignment=options[(i+1)%options.length];log('Asignación',`${w.name} ahora trabajará en ${assignmentLabel(w.assignment).toLowerCase()}.`);save();render();toast(`${w.name}: ${assignmentLabel(w.assignment)}`)}
+function assignmentLabel(a){return{salon:'Salón',barra:'Barra',recepcion:'Recepción',cocina:'Cocina',despensa:'Despensa'}[a]||'Auto'}
+function trainWorker(){const w=selectedWorker();if(!w)return;if(state.gold<18)return toast('Entrenar cuesta 18 de oro');if(w.energy<35)return toast(`${w.name} está demasiado cansada`);state.gold-=18;w.energy=clamp(w.energy-18,0,100);w.xp+=35;const stat=['service','charisma','speed','stamina'][rand(0,3)];w[stat]=clamp(w[stat]+rand(1,3),1,99);levelCheck(w);log('Entrenamiento',`${w.name} entrenó ${stat}. Coste: 18 oro.`);save();render();toast(`${w.name} ganó experiencia`)}
+function levelCheck(w){while(w.xp>=w.level*100){w.xp-=w.level*100;w.level++;w.service=clamp(w.service+2,1,99);w.speed=clamp(w.speed+1,1,99);w.stamina=clamp(w.stamina+1,1,99);w.charisma=clamp(w.charisma+1,1,99);log('Subida de nivel',`${w.name} alcanza nivel ${w.level}.`)}}
+function toggleRest(){const w=selectedWorker();if(!w)return;w.active=!w.active;log(w.active?'Vuelve al turno':'Descanso',`${w.name} ${w.active?'vuelve a estar activa':'descansará durante la próxima jornada'}.`);save();render()}
+function dismissSelected(){const w=selectedWorker();if(!w)return;if(state.staff.length<=1)return toast('Necesitas al menos una trabajadora');confirmAction('Despedir trabajadora',`¿Despedir a ${w.name}? No recuperarás costes de contratación.`,()=>{state.staff=state.staff.filter(x=>x.id!==w.id);state.selectedWorkerId=state.staff[0]?.id||null;log('Fin de contrato',`${w.name} deja la taberna.`);save();render()})}
+function confirmAction(title,text,action){modalAction=action;$('#modalTitle').textContent=title;$('#modalText').textContent=text;$('#confirmModal').classList.add('show');$('#confirmModal').setAttribute('aria-hidden','false')}
+function closeModal(){modalAction=null;$('#confirmModal').classList.remove('show');$('#confirmModal').setAttribute('aria-hidden','true')}
+function customerMix(visitors){let weights={peasants:.34,merchants:.2,adventurers:.2,guards:.17,nobles:.09};if(state.forecast.id==='market'){weights.merchants+=.18;weights.peasants-=.08}if(state.forecast.id==='caravan'){weights.adventurers+=.18;weights.peasants-=.08}if(state.forecast.id==='guard'){weights.guards+=.2;weights.peasants-=.1}if(state.reputation<20){weights.nobles=.02;weights.peasants+=.07}else if(state.reputation>45){weights.nobles+=.08;weights.merchants+=.03}const keys=Object.keys(weights),sum=keys.reduce((a,k)=>a+weights[k],0),counts=Object.fromEntries(keys.map(k=>[k,0]));for(let i=0;i<visitors;i++){let r=Math.random()*sum;for(const k of keys){r-=weights[k];if(r<=0){counts[k]++;break}}}return counts}
+function eventForDay(customers){const r=Math.random();if(r<.1){const tip=rand(8,20);state.gold+=tip;state.reputation++;return`Un mercader satisfecho dejó ${tip} oro extra.`}if(r<.18){const loss=Math.min(Math.max(0,state.gold),rand(6,14));state.gold-=loss;state.reputation=Math.max(0,state.reputation-1);return`Una pelea rompió vajilla. Reparaciones: ${loss} oro.`}if(r<.25&&customers>=7){state.reputation+=2;return'Un bardo compuso una canción sobre la casa. +2 reputación.'}if(r<.31&&state.food>4){const loss=Math.min(state.food,rand(2,5));state.food-=loss;return`Ratas en la despensa: perdiste ${loss} raciones.`}if(r<.36){state.reputation++;return'Un grupo de aventureros tomó la taberna como punto de reunión. +1 reputación.'}return null}
+function openTavern(){if(activeStaff().length===0)return toast('No tienes personal activo');const repPull=4+state.reputation*.34+hospitalityPower()*.03,random=rand(-2,6),fmod=state.forecast?.mod||1;let visitors=Math.round((repPull+random)*demandModifier()*fmod);visitors=clamp(visitors,1,capacity());const mix=customerMix(visitors),service=serviceScore(visitors),aleChance=clamp(.66+state.reputation*.004+avg(servers(),'charisma')*.0015+(hasAbility('extraAle')?.06:0)-Math.max(0,state.prices.ale-4)*.055,.18,.95),foodChance=clamp(.3+kitchenPower()*.006+avg(cooks(),'service')*.001+(hasAbility('special')?.02:0)-Math.max(0,state.prices.meal-7)*.04,.08,.9);let aleSold=0,mealsSold=0,unhappy=0;for(let i=0;i<visitors;i++){if(chance(aleChance)){if(state.ale>0){state.ale--;aleSold++}else unhappy++}if(chance(foodChance)){if(state.food>0){state.food--;mealsSold++}else unhappy++}if(service<.78&&chance(.28))unhappy++}const baseRevenue=aleSold*state.prices.ale+mealsSold*state.prices.meal;const vipIncome=hasAbility('vip')?mix.nobles*rand(2,4):0;const specialIncome=hasAbility('special')&&mealsSold>=2&&chance(.38)?rand(7,15)+Math.round(mealsSold*.45):0;const salary=wages(),roomIncome=state.upgrades.rooms>0?rand(0,state.upgrades.rooms*5):0;const revenue=baseRevenue+vipIncome+specialIncome+roomIncome,expenses=salary,operatingNet=revenue-expenses;state.gold+=operatingNet;let repDelta=0;if(unhappy===0&&service>=.95)repDelta+=2;else if(unhappy<=2&&service>=.78)repDelta++;else if(unhappy>=5)repDelta-=2;else if(unhappy>=3)repDelta--;if(hasAbility('warm')&&service>=.82)repDelta+=chance(.35)?1:0;if(state.prices.ale>=8||state.prices.meal>=13)repDelta--;state.reputation=clamp(state.reputation+repDelta,0,100);let spoilage=0;const spoilChance=.4*(hasAbility('mise')?.45:1)*(activeStaff().some(w=>w.assignment==='despensa')?.7:1);if(state.food>cellarSoftCap()&&chance(spoilChance)){spoilage=Math.min(state.food-cellarSoftCap(),hasAbility('mise')?1:rand(1,3));state.food-=spoilage}const before=state.gold,event=eventForDay(visitors),eventGold=state.gold-before,finalNet=operatingNet+eventGold;const leavers=[];for(const w of state.staff){if(w.active){const drain=Math.round(rand(8,15)*(1.15-w.stamina/200));w.energy=clamp(w.energy-drain,0,100);w.morale=clamp(w.morale+(service>.9?2:service<.65?-3:0),0,100);w.loyalty=clamp((w.loyalty??60)+(service>.9?1:service<.65?-1:0)+(w.energy<20?-1:0),0,100);w.xp+=rand(8,15);levelCheck(w)}else{w.energy=clamp(w.energy+rand(28,42),0,100);w.morale=clamp(w.morale+2,0,100);w.loyalty=clamp((w.loyalty??60)+1,0,100)}if(w.id!=='elena-main'&&(w.loyalty??60)<18&&chance(.12))leavers.push(w)}if(leavers.length){state.staff=state.staff.filter(w=>!leavers.some(x=>x.id===w.id));for(const w of leavers)log('Renuncia',`${w.name} abandonó la taberna por su baja lealtad.`);if(!state.staff.some(w=>w.id===state.selectedWorkerId))state.selectedWorkerId=state.staff[0]?.id||null}state.lifetime.customers+=visitors;state.lifetime.revenue+=revenue;state.lifetime.expenses+=expenses;state.lifetime.profit+=finalNet;const record={day:state.day,visitors,aleSold,mealsSold,revenue,expenses,salary,roomIncome,vipIncome,specialIncome,net:finalNet,unhappy,forecast:state.forecast.label,mix};state.lastDay=record;state.financeHistory.push(record);state.financeHistory=state.financeHistory.slice(-30);state.customerHistory.push({day:state.day,mix,visitors});state.customerHistory=state.customerHistory.slice(-30);let text=`${visitors} clientes · ${aleSold} cervezas · ${mealsSold} platos · ingresos ${revenue} · gastos ${expenses} · balance ${finalNet>=0?'+':''}${finalNet}.`;if(vipIncome)text+=` Sophie generó +${vipIncome} en atención VIP.`;if(specialIncome)text+=` Nara vendió un especial por +${specialIncome}.`;if(repDelta)text+=` Reputación ${repDelta>0?'+':''}${repDelta}.`;if(event)text+=` Evento: ${event}`;if(spoilage)text+=` Merma: ${spoilage} raciones.`;log(`Jornada ${state.day} · ${state.forecast.label}`,text);state.day++;state.forecast=makeForecast();save();render();toast(`Jornada cerrada: ${finalNet>=0?'+':''}${finalNet} oro`)}
+function render(){renderHud();renderFocus();renderScene();renderSummary();renderRecruitment();renderTavern();renderStaff();renderCustomers();renderStock();renderFinance();renderUpgrades();renderRumors();renderLog();renderButtons()}
+function renderHud(){$('#day').textContent=state.day;$('#season').textContent=season();$('#gold').textContent=state.gold;$('#reputation').textContent=state.reputation;$('#occupancy').textContent=`${state.lastDay?.visitors||0}/${capacity()}`}
+function mood(w){if(w.energy<25)return'Exhausta';if(w.morale>=82)return'Motivada';if(w.morale>=60)return'Feliz';if(w.morale>=40)return'Neutral';return'Desanimada'}
+function renderFocus(){const w=selectedWorker();if(!w)return;$('#focusName').textContent=w.name;$('#focusRole').textContent=w.roleLabel;$('#focusSprite').src=w.portrait||w.sprite;$('#focusMood').textContent=mood(w);$('#focusLevel').textContent=`Nv. ${w.level}`;$('#focusWage').textContent=w.wage;$('#focusEnergy').textContent=Math.round(w.energy);$('#focusMorale').textContent=Math.round(w.morale);$('#focusLoyalty').textContent=Math.round(w.loyalty??60);$('#focusRarity').textContent=w.rarity||'Común';$('#focusRarity').className=`rarity-tag ${w.rarityClass||'common'}`;$('#focusAssignment').textContent=assignmentLabel(w.assignment);$('#focusAbility').textContent=w.ability||'Sin habilidad especial';$('#focusAbilityText').textContent=w.abilityText||'Trabajadora generalista.';$('#focusTrait').textContent=w.trait||'Profesional';const need=w.level*100;$('#focusXp').textContent=`${w.xp}/${need}`;$('#focusXpBar').style.width=`${Math.min(100,w.xp/need*100)}%`;$('#focusStats').innerHTML=statBars(w);$('#restBtn').textContent=w.active?'Descansar':'Volver al turno';$('#dismissBtn').disabled=state.staff.length<=1}
+function statBars(w){return[['Servicio','service'],['Carisma','charisma'],['Velocidad','speed'],['Resistencia','stamina']].map(([l,k])=>`<div class="stat-row"><span>${l}</span><div class="bar"><i style="width:${w[k]}%"></i></div><b>${w[k]}</b></div>`).join('')}
+function renderScene(){const title=state.reputation>=60?'Posada legendaria':state.reputation>=35?'Taberna célebre':state.reputation>=20?'Taberna concurrida':'Taberna humilde';$('#tavernTitle').textContent=title;$('#capacity').textContent=capacity();$('#activeStaffCount').textContent=activeStaff().length;$('#wages').textContent=wages();$('#demandLabel').textContent=demandModifier()>1.08?'Alta':demandModifier()<.82?'Baja':'Normal';const svc=serviceScore(Math.max(5,capacity()));$('#serviceBadge').textContent=svc>=.95?'Servicio excelente':svc>=.76?'Servicio estable':'Servicio bajo';$('#serviceBadge').className=`status-chip ${svc>=.76?'good':''}`;$('#sceneStatus').textContent=state.lastDay?`Última jornada · ${state.lastDay.visitors} clientes · ${state.lastDay.net>=0?'+':''}${state.lastDay.net} oro netos.`:'Salón cerrado. La operación está preparada para la primera jornada.';$('#sceneStaff').innerHTML=activeStaff().slice(0,6).map(w=>`<button class="scene-worker" data-worker="${w.id}" title="${w.name} · ${assignmentLabel(w.assignment)}"><img src="${w.portrait||w.sprite}" alt="${w.name}"><span class="bubble"></span></button>`).join('');$('#sceneClients').innerHTML='';document.querySelectorAll('[data-worker]').forEach(b=>b.onclick=()=>selectWorker(b.dataset.worker))}
+function renderSummary(){const d=state.lastDay;$('#lastDayBadge').textContent=d?`Día ${d.day}`:'Sin abrir';$('#todayKpis').innerHTML=d?`<div><span>Ingresos</span><b class="positive">+${d.revenue}</b></div><div><span>Gastos</span><b class="negative">-${d.expenses}</b></div><div><span>Beneficio</span><b class="${d.net>=0?'positive':'negative'}">${d.net>=0?'+':''}${d.net}</b></div><div><span>Clientes</span><b>${d.visitors}</b></div>`:'<div><span>Abre la primera jornada</span><b>—</b></div>';$('#aleStockMini').textContent=state.ale;$('#foodStockMini').textContent=state.food;$('#cellarLevelMini').textContent=state.upgrades.cellar;$('#forecastBadge').textContent=state.forecast.label;$('#forecastText').textContent=state.forecast.text;$('#financeChart').innerHTML=chartSvg(state.financeHistory);$('#openHint').textContent=state.ale<5||state.food<4?'Inventario bajo: abastece antes de abrir.':activeStaff().some(w=>w.energy<30)?'Parte de la plantilla está exhausta. Considera descanso.':'Inventario y plantilla listos para operar.'}
+function chartSvg(history){const data=history.slice(-8);if(!data.length)return'<div style="display:grid;place-items:center;height:100%;color:#8f8172">Aún no hay jornadas registradas.</div>';const W=600,H=160,pad=18,max=Math.max(...data.flatMap(d=>[d.revenue,d.expenses,Math.abs(d.net)]),10);const xs=i=>pad+i*((W-pad*2)/Math.max(1,data.length-1)),ys=v=>H-pad-(v/max)*(H-pad*2),path=k=>data.map((d,i)=>`${i?'L':'M'}${xs(i)},${ys(Math.max(0,k==='net'?d.net:d[k]))}`).join(' ');return`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path class="chart-grid" d="M18 40H582M18 80H582M18 120H582"/><path class="chart-income" d="${path('revenue')}"/><path class="chart-expense" d="${path('expenses')}"/><path class="chart-profit" d="${path('net')}"/></svg>`}
+function renderRecruitment(){const cards=state.candidates.map(id=>candidateCard(candidateById(id))).join('')||'<p class="muted">No hay candidatas disponibles.</p>';$('#candidateStrip').innerHTML=cards;$('#candidateGrid').innerHTML=state.candidates.map(id=>candidateWide(candidateById(id))).join('');document.querySelectorAll('[data-hire]').forEach(b=>b.onclick=e=>{e.stopPropagation();hireCandidate(b.dataset.hire)})}
+function candidateCard(c){if(!c)return'';return`<article class="candidate-card"><img src="${c.portrait||c.sprite}" alt="${c.name}"><div class="candidate-copy"><div class="candidate-title"><h4>${c.name}</h4><span class="rarity-tag ${c.rarityClass||'common'}">${c.rarity}</span></div><small>${c.roleLabel} · ${c.trait}</small><div class="mini-stats"><span>CAR ${c.charisma}</span><span>VEL ${c.speed}</span><span>REP ${c.minRep}</span></div><div class="candidate-skill">${c.ability}</div><button data-hire="${c.id}" ${state.gold<c.hireCost||state.reputation<c.minRep?'disabled':''}>Contratar · ${c.hireCost}</button></div></article>`}
+function candidateWide(c){if(!c)return'';return`<article class="candidate-wide"><img src="${c.portrait||c.sprite}" alt="${c.name}"><div class="staff-card-copy"><div class="candidate-title"><h3>${c.name}</h3><span class="rarity-tag ${c.rarityClass||'common'}">${c.rarity}</span></div><small>${c.roleLabel} · ${c.trait}</small><div class="worker-state"><span>Servicio ${c.service}</span><span>Carisma ${c.charisma}</span><span>Vel. ${c.speed}</span><span>Res. ${c.stamina}</span></div><div class="candidate-skill"><b>${c.ability}</b><small>${c.abilityText}</small></div><b>${c.wage} oro/día</b><div style="margin-top:8px"><button data-hire="${c.id}" ${state.gold<c.hireCost||state.reputation<c.minRep?'disabled':''}>Contratar · ${c.hireCost}</button></div></div></article>`}
+function renderTavern(){$('#alePrice').textContent=state.prices.ale;$('#mealPrice').textContent=state.prices.meal;const mod=demandModifier();$('#priceAdvice').textContent=mod>.98?'Tus precios son competitivos y no frenan demasiado la demanda.':mod>.75?'Tus precios ya reducen parte de la demanda.':'Tus precios son muy agresivos: podrías perder clientes y reputación.';$('#hallMetrics').innerHTML=metrics([['Capacidad',capacity()],['Demanda por precios',`${Math.round(mod*100)}%`],['Poder de hospitalidad',Math.round(hospitalityPower())],['Servicio a salón lleno',`${Math.round(serviceScore(capacity())*100)}%`]])}
+function renderStaff(){const summary=$('#summaryRoster');if(summary)summary.innerHTML=state.staff.slice(0,6).map(w=>`<button class="summary-worker" data-summary-worker="${w.id}"><img src="${w.portrait||w.sprite}" alt="${w.name}"><div><strong>${w.name}</strong><small>${w.roleLabel} · Nv. ${w.level}</small><span>${assignmentLabel(w.assignment)} · ${Math.round(w.energy)}% energía</span></div></button>`).join('');$('#staffRoster').innerHTML=state.staff.map(w=>`<article class="staff-card"><img src="${w.portrait||w.sprite}" alt="${w.name}"><div class="staff-card-copy"><div class="candidate-title"><h3>${w.name}</h3><span class="rarity-tag ${w.rarityClass||'common'}">${w.rarity||'Común'}</span></div><small>${w.roleLabel} · Nv. ${w.level} · ${assignmentLabel(w.assignment)}</small><div class="worker-state"><span>${mood(w)}</span><span>Energía ${Math.round(w.energy)}%</span><span>Lealtad ${Math.round(w.loyalty??60)}%</span><span>${w.wage}/día</span></div><div class="candidate-skill compact">${w.ability||'Sin especialidad'}</div><div class="bar"><i style="width:${Math.min(100,(w.xp/(w.level*100))*100)}%"></i></div></div><div class="staff-card-actions"><button data-select="${w.id}">Ver expediente</button><button data-active="${w.id}">${w.active?'Descansar':'Activar'}</button></div></article>`).join('');document.querySelectorAll('[data-select]').forEach(b=>b.onclick=()=>{selectWorker(b.dataset.select);switchTab('summary')});document.querySelectorAll('[data-active]').forEach(b=>b.onclick=()=>{state.selectedWorkerId=b.dataset.active;toggleRest()});document.querySelectorAll('[data-summary-worker]').forEach(b=>b.onclick=()=>selectWorker(b.dataset.summaryWorker))}
+function renderCustomers(){const mix=state.lastDay?.mix||{peasants:0,merchants:0,adventurers:0,guards:0,nobles:0};$('#customerCards').innerHTML=Object.entries(CUSTOMER_TYPES).map(([k,v])=>`<article class="card customer-type-card"><div class="icon">${v.icon}</div><strong>${mix[k]||0}</strong><span>${v.label}</span><p class="muted">${customerDescription(k)}</p></article>`).join('')}
+function customerDescription(k){return{peasants:'Sensibles al precio y frecuentes.',merchants:'Buen gasto en bebida y propinas.',adventurers:'Comen y beben bastante.',guards:'Valoran rapidez y comida caliente.',nobles:'Exigen reputación y gran servicio.'}[k]}
+function renderStock(){$('#foodStock').textContent=state.food;$('#aleStock').textContent=state.ale;$('#kitchenMetrics').innerHTML=metrics([['Cocineras activas',cooks().length],['Potencia de cocina',Math.round(kitchenPower())],['Nivel de cocina',state.upgrades.kitchen],['Precio del plato',state.prices.meal]]);$('#cellarMetrics').innerHTML=metrics([['Nivel de bodega',state.upgrades.cellar],['Capacidad recomendada',cellarSoftCap()],['Cerveza actual',state.ale],['Raciones actuales',state.food]])}
+function renderFinance(){const h=state.financeHistory,totalRev=state.lifetime.revenue,totalExp=state.lifetime.expenses,totalNet=state.lifetime.profit,avgNet=h.length?Math.round(h.reduce((a,d)=>a+d.net,0)/h.length):0;$('#financeSummary').innerHTML=[['Ingresos históricos',totalRev,''],['Gastos históricos',totalExp,'negative'],['Beneficio acumulado',totalNet,totalNet>=0?'positive':'negative'],['Promedio/jornada',avgNet,avgNet>=0?'positive':'negative']].map(([l,v,c])=>`<div class="card"><span>${l}</span><b class="${c}">${v}</b></div>`).join('');$('#financeTable').innerHTML=`<div class="finance-row head"><span>Día</span><span>Clientes</span><span>Ingresos</span><span>Gastos</span><span>Neto</span></div>`+h.slice().reverse().map(d=>`<div class="finance-row"><span>${d.day}</span><span>${d.visitors}</span><span class="positive">${d.revenue}</span><span class="negative">${d.expenses}</span><span class="${d.net>=0?'positive':'negative'}">${d.net>=0?'+':''}${d.net}</span></div>`).join('')}
+function renderUpgrades(){const defs=[['tables','SAL','Mesas y bancos','Aumenta la capacidad del salón en 4 clientes por nivel.'],['kitchen','COC','Cocina','Mejora el rendimiento de las cocineras y las ventas de platos.'],['cellar','BOD','Bodega','Amplía la capacidad segura de almacenamiento.'],['decor','DEC','Decoración','Mejora la demanda y la hospitalidad general.'],['rooms','HAB','Habitaciones','Genera ingresos adicionales aleatorios con viajeros.']];$('#upgradeGrid').innerHTML=defs.map(([k,ic,n,d])=>{const cost=upgradeCost(k),lv=state.upgrades[k]||0;return`<article class="card upgrade-card"><div class="icon">${ic}</div><h3>${n}</h3><span class="status-chip">Nivel ${lv}</span><p>${d}</p><button data-upgrade="${k}" ${state.gold<cost?'disabled':''}>Mejorar · ${cost} oro</button></article>`}).join('');document.querySelectorAll('[data-upgrade]').forEach(b=>b.onclick=()=>upgrade(b.dataset.upgrade))}
+function renderRumors(){$('#forecastBadgeLarge').textContent=state.forecast.label;$('#forecastTitle').textContent=state.forecast.segment;$('#forecastTextLarge').textContent=state.forecast.text;$('#forecastImpact').textContent=state.forecast.impact}
+function renderLog(){$('#logList').innerHTML=state.log.length?state.log.map(x=>`<article class="log-item"><strong>Día ${x.day} · ${escapeHtml(x.title)}</strong><p>${escapeHtml(x.text)}</p></article>`).join(''):'<p class="muted">No hay anotaciones.</p>'}
+function renderButtons(){$('#buyAle').disabled=state.gold<12;$('#buyFood').disabled=state.gold<16;$('#refreshCandidates').disabled=state.gold<8;$('#refreshCandidates2').disabled=state.gold<8;const w=selectedWorker();if(w){$('#giftBtn').disabled=state.gold<10||w.giftedDay===state.day;$('#trainBtn').disabled=state.gold<18||w.energy<35}}
+function metrics(items){return items.map(([l,v])=>`<div class="metric"><span>${l}</span><b>${v}</b></div>`).join('')}
+function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]))}
+function toast(msg){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2200)}
+function $(sel){return document.querySelector(sel)}
+function switchTab(id){document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===id));window.scrollTo({top:0,behavior:'smooth'})}
+document.querySelectorAll('.nav-btn').forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));document.querySelectorAll('[data-tab-jump]').forEach(b=>b.onclick=()=>switchTab(b.dataset.tabJump));document.querySelectorAll('[data-price]').forEach(b=>b.onclick=()=>changePrice(b.dataset.price,Number(b.dataset.delta)));$('#saveBtn').onclick=()=>save(true);$('#openBtn').onclick=openTavern;$('#buyAle').onclick=()=>buy('ale',10,12,'Barril de cerveza');$('#buyFood').onclick=()=>buy('food',8,16,'Provisiones');$('#refreshCandidates').onclick=refreshCandidates;$('#refreshCandidates2').onclick=refreshCandidates;$('#talkBtn').onclick=talkWorker;$('#giftBtn').onclick=giftWorker;$('#trainBtn').onclick=trainWorker;$('#assignBtn').onclick=assignWorker;$('#restBtn').onclick=toggleRest;$('#dismissBtn').onclick=dismissSelected;$('#clearLog').onclick=()=>confirmAction('Limpiar registro','¿Eliminar todas las anotaciones de la crónica?',()=>{state.log=[];save();render()});$('#resetBtn').onclick=()=>confirmAction('Reiniciar partida','Se borrará todo el progreso local de Tavern Keeper G.',()=>{localStorage.removeItem(SAVE_KEY);state=initialState();save();render()});$('#modalCancel').onclick=closeModal;$('#modalConfirm').onclick=()=>{const a=modalAction;closeModal();if(a)a()};$('#confirmModal').onclick=e=>{if(e.target.id==='confirmModal')closeModal()};render();save();

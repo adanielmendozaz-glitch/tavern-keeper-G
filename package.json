@@ -1,8 +1,8 @@
 {
   "name": "tavern-keeper",
-  "version": "0.1.0",
+  "version": "0.4.0",
   "private": true,
-  "description": "Juego móvil de gestión de taberna medieval para Android con Capacitor.",
+  "description": "Juego móvil de gestión avanzada de taberna medieval para Android, con interfaz de mando premium, personal individual, retratos, economía, contratación y progresión.",
   "scripts": {
     "serve": "npx serve www",
     "android:add": "npx cap add android",

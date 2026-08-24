@@ -1,67 +1,32 @@
-# Tavern Keeper — V0.1
+# Tavern Keeper G — V0.4
 
-Primera versión jugable del proyecto **Tavern Keeper G**.
+V0.4 reconstruye la presentación del juego como un panel de gestión medieval serio y móvil, conservando la lógica y las partidas de V0.3.
 
-## Núcleo de juego
-- Ciclo de jornadas: preparas el negocio y luego abres la taberna.
-- Oro, reputación, capacidad y salarios.
-- Inventario de cerveza y comida.
-- Precios editables que afectan la demanda.
-- Contratación de camareros y cocineros.
-- Mejoras de mesas, cocina y bodega.
-- Rumor/pronóstico diario: lluvia, mercado, caravanas, guardia, etc.
-- Clientes simulados según reputación, precios, capacidad, personal y jornada.
-- Eventos aleatorios: bardos, peleas, mercaderes, ratas y aventureros.
-- Historial de jornadas.
-- Guardado automático local y esquema preparado para migrar partidas en futuras versiones.
+## Cambios principales
 
-## Estructura
-- `www/` contiene el juego.
-- `capacitor.config.json` prepara el contenedor Android.
-- `.github/workflows/android-debug.yml` permite generar un APK debug desde GitHub Actions.
+- Rediseño visual completo: negro, madera, bronce y oro apagado.
+- Se elimina el aspecto de prototipo infantil en la pantalla principal.
+- Retratos semirrealistas utilizados como imagen real del personal.
+- Nueva escena principal de taberna con arte ambiental integrado.
+- Centro de mando con expediente de empleada, operación del salón, resultado financiero, inventario y rumores.
+- Plantilla actual visible desde el resumen.
+- Mercado laboral con cartas compactas y retratos.
+- Adaptación móvil específica: sin desbordamiento horizontal de página, HUD desplazable contenido y navegación compacta.
+- Interfaz de Personal, Finanzas, Cocina, Bodega y Mejoras reformada con el mismo lenguaje visual.
+- Se mantiene contratación, moral, energía, lealtad, entrenamiento, descanso, asignaciones, salarios y habilidades.
+- Migración automática de guardados anteriores a `schemaVersion 4`.
+- Se incluye favicon para evitar el 404 del navegador de desarrollo.
 
-## Probar en Termux
+## Prueba rápida
+
 ```bash
-pkg install nodejs -y
 npm install
 npm run check
-npm run serve
+python -m http.server 8080 -d www
 ```
 
-## Subir esta versión al repositorio oficial
-Repositorio:
-`https://github.com/adanielmendozaz-glitch/tavern-keeper-G.git`
+Abre `http://127.0.0.1:8080` mientras el servidor esté activo.
 
-Si el repositorio todavía está vacío:
-```bash
-cd ~
-git clone https://github.com/adanielmendozaz-glitch/tavern-keeper-G.git
-cd tavern-keeper-G
-```
+## Android
 
-Copia o extrae dentro de esa carpeta los archivos de esta V0.1 y luego:
-```bash
-git add .
-git commit -m "Tavern Keeper V0.1"
-git push origin main
-```
-
-## Android / APK
-Capacitor 8 convierte este proyecto web en una aplicación Android nativa.
-
-```bash
-npm install
-npx cap add android
-npx cap sync android
-```
-
-Con un entorno Android SDK/Gradle compatible:
-```bash
-cd android
-./gradlew assembleDebug
-```
-
-APK esperado:
-`android/app/build/outputs/apk/debug/app-debug.apk`
-
-También se incluye un workflow de GitHub Actions que intenta construir automáticamente el APK en cada push a `main`.
+El proyecto sigue preparado para Capacitor y para generar `app-debug.apk` con GitHub Actions al subir a `main`.
