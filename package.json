@@ -1,8 +1,8 @@
 {
   "name": "tavern-keeper",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "private": true,
-  "description": "Tavern Keeper G V0.9: expansión física de la taberna, clientes VIP/especiales y eventos nocturnos con decisiones durante la jornada viva.",
+  "description": "Tavern Keeper G V0.9.1 hotfix: corrige inicialización de V0.9 para restaurar plantilla, mercado laboral, menú, finanzas, mejoras y apertura de jornada sin perder partida.",
   "scripts": {
     "serve": "npx serve www",
     "android:add": "npx cap add android",

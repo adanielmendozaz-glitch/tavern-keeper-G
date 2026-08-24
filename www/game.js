@@ -239,7 +239,7 @@ const LIVE_PREFS={
   nobles:{drink:[['wine',.52],['mead',.4],['beer',.08]],food:[['roast',.52],['cheese',.34],['stew',.14]],drinkChance:.76,foodChance:.66}
 };
 function syncLegacyStock(){state.ale=state.inventory.beer||0;state.food=state.inventory.stew||0;state.prices.ale=state.productPrices.beer;state.prices.meal=state.productPrices.stew}
-function ensureV08State(){
+function ensureV07State(){
   const needsV07=!state.inventory;
   if(!state.inventory)state.inventory={beer:Number(state.ale)||0,wine:0,mead:0,stew:Number(state.food)||0,roast:0,cheese:0};
   for(const id of Object.keys(PRODUCTS))if(state.inventory[id]==null)state.inventory[id]=0;
@@ -363,7 +363,7 @@ function v08MinRep(rarityKey,lineageKey){const base={common:0,competent:4,expert
 function v08NormalizeWorker(w){
   if(!w.lineageKey)w.lineageKey='human';
   if(!w.lineage)w.lineage=LINEAGES_V08[w.lineageKey]?.label||'Humana';
-  if(!w.archetype)w.archetype=w.role==='cook'?'Cocinera rústica':'Tabernera recia';
+  if(w.archetype&&typeof w.archetype==='object')w.archetype=w.archetype.label||null;if(!w.archetype)w.archetype=w.role==='cook'?'Cocinera rústica':'Tabernera recia';
   if(!w.feature)w.feature=pick(FEATURES_V08);
   if(!w.bodyNote)w.bodyNote=pick(BODY_NOTES_V08);
   if(!w.outfit)w.outfit='uniforme de trabajo';
@@ -373,8 +373,8 @@ function v08NormalizeWorker(w){
 function generateCandidate(seed){
   seed=seed||{names:new Set(),portraits:new Set()};
   const rarityKey=rarityRoll(), d=RARITY_DEFS[rarityKey], role=chance(.68)?'server':'cook', lineageKey=v08LineageRoll(rarityKey), lineage=LINEAGES_V08[lineageKey].label;
-  const archetype=v08Archetype(role,lineageKey), roleLabel=archetype.roleLabel || (role==='cook'?'Cocinera':'Camarera');
-  const ability=pick(role==='cook'?COOK_ABILITIES:SERVER_ABILITIES), lbonus=LINEAGE_BONUS_V08[lineageKey]||LINEAGE_BONUS_V08.human, abon=archetype.bonus||{};
+  const archetypeDef=v08Archetype(role,lineageKey), roleLabel=archetypeDef.roleLabel || (role==='cook'?'Cocinera':'Camarera');
+  const ability=pick(role==='cook'?COOK_ABILITIES:SERVER_ABILITIES), lbonus=LINEAGE_BONUS_V08[lineageKey]||LINEAGE_BONUS_V08.human, abon=archetypeDef.bonus||{};
   const name=v08Used(LINEAGE_NAME_POOLS_V08[lineageKey]||LINEAGE_NAME_POOLS_V08.human, seed.names); seed.names.add(name);
   const portrait=v08Used(PORTRAIT_GROUPS_V08[lineageKey]||PORTRAIT_GROUPS_V08.human, seed.portraits); seed.portraits.add(portrait);
   const feature=pick(FEATURES_V08), bodyNote=pick(BODY_NOTES_V08), age=lineageKey==='elf'?rand(26,130):lineageKey==='halfelf'?rand(24,46):rand(22,39);
@@ -382,20 +382,19 @@ function generateCandidate(seed){
   const stats={service,charisma,speed,stamina}; if(role==='cook')stats.cooking=v08Stat(rand(d.min,d.max),lbonus.cooking,abon.cooking);
   const wage=Math.max(5, rand(...d.wage)+(lineageKey==='elf'?2:0)+(rarityKey==='genius'?3:0)), hireCost=Math.max(30, rand(...d.hire)+(lineageKey==='elf'?12:lineageKey==='halfelf'?5:0));
   const assignment=role==='cook'?'cocina':(roleLabel==='Anfitriona'?'recepcion':(chance(.42)?'barra':'salon'));
-  const outfit=v08Outfit(lineageKey,rarityKey,role), trait=pick(archetype.traitPool||TRAITS), minRep=v08MinRep(rarityKey,lineageKey);
+  const outfit=v08Outfit(lineageKey,rarityKey,role), trait=pick(archetypeDef.traitPool||TRAITS), minRep=v08MinRep(rarityKey,lineageKey), archetype=archetypeDef.label;
   return {id:`proc-${Date.now()}-${Math.random().toString(36).slice(2,9)}`,instanceId:`cand-${Date.now()}-${Math.random().toString(36).slice(2,10)}`,catalogId:null,name,age,role,roleLabel,portrait,sprite:portrait,wage,hireCost,...stats,rarity:d.label,rarityClass:d.className,rarityKey,trait,ability:ability.name,abilityId:ability.id,abilityText:ability.text,assignment,minRep,outfit,procedural:true,lineageKey,lineage,archetype,feature,bodyNote}
 }
 function generateCandidates(n){
   const total=n||(chance(.18)?5:chance(.44)?4:3), seed={names:new Set(activeStaff().map(w=>w.name)), portraits:new Set()};
   const out=[]; for(let i=0;i<total;i++) out.push(generateCandidate(seed));
-  if(!out.some(c=>c.lineageKey==='elf') && chance(0.2 + v08ChanceRep(state.reputation||0,0,60)*0.15)) out[rand(0,out.length-1)].lineageKey='elf', out[rand(0,out.length-1)].lineage='Elfa';
   return out.map(v08NormalizeWorker)
 }
 function marketEventFor(list){
   const g=list.find(c=>c.rarityKey==='genius'); if(g) return {kind:'genius', text:`Lo imposible ocurrió: ${g.name}, una ${g.lineage.toLowerCase()} catalogada como GENIO, apareció en Brumavieja. Su expediente es extraordinario y su contratación será durísima.`};
-  const p=list.find(c=>c.rarityKey==='prodigy'); if(p) return {kind:'prodigy', text:`Rumor extraordinario: ${p.name}, ${p.lineage.toLowerCase()} de arquetipo ${p.archetype.toLowerCase()}, busca empleo por un tiempo muy limitado.`};
-  const e=list.find(c=>c.lineageKey==='elf'); if(e) return {kind:'elf', text:`Visitantes poco comunes llegaron al mercado laboral: ${e.name}, ${e.lineage.toLowerCase()} ${e.archetype.toLowerCase()}, está disponible para contratación.`};
-  const h=list.find(c=>c.lineageKey==='halfelf'); if(h) return {kind:'lineage', text:`La oferta laboral se volvió más interesante: ${h.name}, una ${h.lineage.toLowerCase()} ${h.archetype.toLowerCase()}, destaca entre las candidatas del día.`};
+  const p=list.find(c=>c.rarityKey==='prodigy'); if(p) return {kind:'prodigy', text:`Rumor extraordinario: ${p.name}, ${p.lineage.toLowerCase()} de arquetipo ${String(p.archetype||'trabajadora excepcional').toLowerCase()}, busca empleo por un tiempo muy limitado.`};
+  const e=list.find(c=>c.lineageKey==='elf'); if(e) return {kind:'elf', text:`Visitantes poco comunes llegaron al mercado laboral: ${e.name}, ${e.lineage.toLowerCase()} ${String(e.archetype||'viajera').toLowerCase()}, está disponible para contratación.`};
+  const h=list.find(c=>c.lineageKey==='halfelf'); if(h) return {kind:'lineage', text:`La oferta laboral se volvió más interesante: ${h.name}, una ${h.lineage.toLowerCase()} ${String(h.archetype||'trabajadora').toLowerCase()}, destaca entre las candidatas del día.`};
   return null
 }
 function candidateById(id){return state.candidates.find(c=>c.instanceId===id||c.id===id)||CANDIDATE_CATALOG.find(c=>c.id===id)}

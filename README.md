@@ -1,38 +1,42 @@
-# Tavern Keeper G — V0.9
+# Tavern Keeper G — V0.9.1 HOTFIX
 
-V0.9 es el salto de “taberna funcional” a “negocio que crece y recibe situaciones especiales”.
+Corrección crítica de V0.9.
 
-## Expansión física
-- Mesas y bancos
-- Barra profesional
-- Cocina
-- Bodega
-- Decoración
-- Habitaciones
-- Salón VIP
-- Seguridad
+## Qué se corrigió
 
-Cada mejora tiene nivel, coste, requisitos y efectos operativos. El Salón VIP exige reputación y decoración previa.
+V0.9 tenía dos fallos de inicialización heredados al combinar V0.7, V0.8 y V0.9:
 
-## Clientes especiales
-Pueden aparecer visitantes especiales durante la jornada viva: magnates, campeones, inspectoras y emisarias élficas. Gastan más, tienen menos paciencia y pueden otorgar prestigio adicional.
+1. El inicializador de compatibilidad de V0.7 quedó renombrado por error como `ensureV08State`, mientras el inicializador real de V0.8 llamaba a `ensureV07State()`. Esto detenía JavaScript antes del primer render.
+2. El arquetipo de las candidatas V0.8 podía quedar guardado como objeto en vez de texto. Al aparecer una candidata especial (por ejemplo una elfa), el anuncio del mercado podía lanzar un error.
 
-## Eventos nocturnos con decisiones
-Durante algunas jornadas aparece una decisión de gerencia que pausa el turno. Hay varias respuestas posibles y consecuencias económicas o de reputación.
+Síntomas visibles de V0.9:
 
-Eventos incluidos:
-- pelea en el salón
-- comitiva de alto rango
-- inspección inesperada
-- trato de caravana
+- plantilla vacía;
+- mercado laboral vacío;
+- pestañas de taberna, finanzas y otras secciones sin contenido;
+- renovar candidatas sin resultado visible;
+- no se podía iniciar la jornada aunque hubiera personal;
+- algunos valores estáticos del HTML seguían visibles, por lo que la app parecía cargar parcialmente.
 
-## Posada
-Las habitaciones ya no generan un ingreso abstracto: pueden producir huéspedes nocturnos y su ingreso queda registrado en el cierre de jornada.
+V0.9.1 restaura la cadena correcta:
 
-## Compatibilidad Android
-- appId: `com.alfonso.tavernkeeper`
-- versionCode: `9`
-- versionName: `0.9.0`
-- firma DEV estable, compatible con actualización directa sobre V0.8.
+`ensureV07State()` → `ensureV08State()` → `ensureV09State()`
 
-Artifact de GitHub Actions: `tavern-keeper-G-v0.9-apk`.
+También normaliza los arquetipos antiguos y evita una conversión inconsistente de candidatas a elfa.
+
+## Pruebas realizadas
+
+- `node --check www/game.js`
+- smoke test completo de inicialización con DOM simulado
+- smoke test del botón **Abrir siguiente jornada**
+- smoke test de **Renovar candidatas**
+
+## Android
+
+- `appId`: `com.alfonso.tavernkeeper`
+- `versionCode`: `10`
+- `versionName`: `0.9.1`
+- artifact: `tavern-keeper-G-v0.9.1-apk`
+- misma firma DEV de versiones anteriores
+
+Se instala como actualización sobre V0.9 y conserva la partida local.
