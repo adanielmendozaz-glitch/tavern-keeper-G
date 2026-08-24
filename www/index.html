@@ -16,7 +16,7 @@
     <div class="brand-block">
       <div class="brand-seal">TK</div>
       <div class="brand-copy">
-        <span class="brand-kicker">TAVERN KEEPER G</span>
+        <span id="trainerHotspot" class="brand-kicker" role="button" aria-label="Tavern Keeper G">TAVERN KEEPER G</span>
         <strong>La Jarra del Cuervo</strong>
         <small>Casa de Brumavieja</small>
       </div>
@@ -235,7 +235,7 @@
     </main>
   </div>
 
-  <footer class="statusbar"><span>Tavern Keeper G · V0.9.3</span><span>Actualización directa · conserva la partida instalada</span><button id="resetBtn" class="link-danger">Reiniciar partida</button></footer>
+  <footer class="statusbar"><span>Tavern Keeper G · V0.9.4</span><span>Actualización directa · conserva la partida instalada</span><button id="resetBtn" class="link-danger">Reiniciar partida</button></footer>
 </div>
 
 
@@ -323,6 +323,47 @@
     <div id="eventDecisionChoices" class="event-decision-choices"></div>
   </div>
 </div>
+
+<div id="trainerOverlay" class="trainer-overlay" aria-hidden="true">
+  <div class="trainer-card" role="dialog" aria-modal="true" aria-labelledby="trainerTitle">
+    <header class="trainer-head">
+      <div>
+        <span class="eyebrow">DEBUG · PERSONAL</span>
+        <h3 id="trainerTitle">Trainer de energía</h3>
+        <p>Herramientas de prueba para mantener disponible a tu plantilla.</p>
+      </div>
+      <button id="trainerCloseBtn" class="trainer-close" aria-label="Cerrar trainer">×</button>
+    </header>
+
+    <section class="trainer-worker">
+      <div class="trainer-worker-copy">
+        <span>TRABAJADORA SELECCIONADA</span>
+        <strong id="trainerWorkerName">—</strong>
+        <small id="trainerWorkerStatus">Energía —</small>
+      </div>
+      <div class="trainer-energy"><b id="trainerWorkerEnergy">0%</b><i><u id="trainerWorkerEnergyBar" style="width:0%"></u></i></div>
+    </section>
+
+    <div class="trainer-actions">
+      <button id="trainerRestoreSelected" class="trainer-primary">RESTAURAR SELECCIONADA · 100%</button>
+      <button id="trainerRestoreAll">RESTAURAR TODA LA PLANTILLA</button>
+    </div>
+
+    <label class="trainer-toggle">
+      <input id="trainerInfiniteEnergy" type="checkbox" />
+      <span>
+        <b>ENERGÍA INFINITA</b>
+        <small>Al terminar jornadas o entrenamientos, la energía vuelve a 100%. El descanso manual sigue siendo tu decisión.</small>
+      </span>
+    </label>
+
+    <div class="trainer-note">
+      <b>DEBUG LOCAL</b>
+      <span>No altera estadísticas, rareza, salario, moral ni lealtad.</span>
+    </div>
+  </div>
+</div>
+
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <div id="confirmModal" class="modal" aria-hidden="true"><div class="modal-card"><span class="eyebrow">CONFIRMACIÓN</span><h3 id="modalTitle">Confirmar</h3><p id="modalText"></p><div><button id="modalCancel">Cancelar</button><button id="modalConfirm" class="danger">Confirmar</button></div></div></div>
 <script src="game.js"></script>

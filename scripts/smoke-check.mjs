@@ -18,12 +18,12 @@ const localStorage={getItem:k=>store.has(k)?store.get(k):null,setItem:(k,v)=>sto
 let timerId=1;
 const windowObj={scrollTo(){},addEventListener(){}};
 const context=vm.createContext({console,document,window:windowObj,localStorage,setTimeout:()=>1,clearTimeout(){},setInterval:()=>timerId++,clearInterval(){},structuredClone,Date,Math,JSON,Set,Map,Object,Array,String,Number,Boolean,RegExp,Error});
-const expose=`\n;globalThis.__tk={getState:()=>state,getLive:()=>liveShift,setLive:v=>liveShift=v,startLiveShift,simulateLiveTick,finishLiveShift,refreshCandidates,generateCandidates,resolveV09Decision,V09_DECISION_EVENTS,persistLiveShift,restoreLiveShift,clearLiveShiftSnapshot,spawnLiveGuest};`;
+const expose=`\n;globalThis.__tk={getState:()=>state,getLive:()=>liveShift,setLive:v=>liveShift=v,startLiveShift,simulateLiveTick,finishLiveShift,refreshCandidates,generateCandidates,resolveV09Decision,V09_DECISION_EVENTS,persistLiveShift,restoreLiveShift,clearLiveShiftSnapshot,spawnLiveGuest,restoreSelectedEnergy,restoreAllEnergy,setInfiniteEnergy,getTrainer:()=>trainerSettings,trainerSecretTap,openTrainer,closeTrainer};`;
 vm.runInContext(source+expose,context,{filename:'game.js'});
 const api=context.__tk;
 assert(api,'API de smoke test no expuesta');
-assert(version==='0.9.3','VERSION debe ser 0.9.3');
-assert(html.includes('Tavern Keeper G · V0.9.3'),'Footer visual no coincide con V0.9.3');
+assert(version==='0.9.4','VERSION debe ser 0.9.4');
+assert(html.includes('Tavern Keeper G · V0.9.4'),'Footer visual no coincide con V0.9.4');
 const st=api.getState();
 assert(st.staff?.length>0,'La plantilla inicial no se renderiza');
 assert(st.candidates?.length>0,'El mercado laboral quedó vacío al arrancar');
@@ -33,6 +33,39 @@ api.refreshCandidates();assert(api.getState().candidates.length>=3,'Renovar cand
 for(const k of Object.keys(st.inventory||{}))st.inventory[k]=80;
 for(const k of Object.keys(st.menuEnabled||{}))st.menuEnabled[k]=true;
 st.staff.forEach(w=>{w.active=true;w.energy=100});
+
+
+// Trainer V0.9.4: restauración individual y de toda la plantilla
+assert(html.includes('id="trainerOverlay"'),'Falta el panel trainer en HTML');
+assert(html.includes('id="trainerHotspot"'),'Falta el acceso secreto del trainer');
+const chosen=st.staff[0];
+chosen.energy=7;chosen.active=false;st.selectedWorkerId=chosen.id;
+assert(api.restoreSelectedEnergy(),'No pudo restaurar trabajadora seleccionada');
+assert(chosen.energy===100,'Restaurar seleccionada no deja energía en 100');
+assert(chosen.active===true,'Restaurar seleccionada no la deja disponible');
+st.staff.forEach((w,i)=>{w.energy=5+i;w.active=false});
+assert(api.restoreAllEnergy(),'No pudo restaurar toda la plantilla');
+assert(st.staff.every(w=>w.energy===100&&w.active),'Restaurar toda la plantilla no deja a todas disponibles');
+
+// Energía infinita debe persistir y evitar desgaste al finalizar jornada
+api.setInfiniteEnergy(true);
+assert(api.getTrainer().infiniteEnergy===true,'No se activó energía infinita');
+assert(JSON.parse(store.get('tavernKeeper_trainer_v1')).infiniteEnergy===true,'Energía infinita no persiste');
+st.staff.forEach(w=>{w.energy=13;w.active=true});
+api.setLive(null);api.clearLiveShiftSnapshot();st.gold=10000;st.reputation=100;
+for(const k of Object.keys(st.inventory||{}))st.inventory[k]=120;
+api.startLiveShift();let trainerLoops=0;
+while(api.getLive()&&!api.getLive().finished&&trainerLoops++<500){if(api.getLive().pendingDecision)api.resolveV09Decision(0);else api.simulateLiveTick()}
+assert(api.getLive()?.finished,'Jornada trainer quedó bloqueada');
+assert(st.staff.every(w=>w.energy===100),'Energía infinita no restauró 100% al cerrar jornada');
+api.setInfiniteEnergy(false);
+assert(api.getTrainer().infiniteEnergy===false,'No se pudo apagar energía infinita');
+
+// Cinco toques deben abrir el trainer
+api.closeTrainer();
+for(let i=0;i<5;i++)api.trainerSecretTap();
+assert(els.get('trainerOverlay').classList.contains('open'),'Cinco toques no abren el trainer');
+api.closeTrainer();
 
 // Probar cada rama de decisiones con una jornada real inicializada
 for(const ev of api.V09_DECISION_EVENTS){
@@ -76,4 +109,4 @@ const tickBefore=api.getLive().tick;api.persistLiveShift();api.setLive(null);ass
 const refs=[...source.matchAll(/['"](assets\/[^'"]+)['"]/g)].map(m=>m[1]);
 const missing=[...new Set(refs)].filter(r=>!fs.existsSync(path.join(ROOT,'www',r)));
 assert(missing.length===0,`Assets faltantes: ${missing.join(', ')}`);
-console.log('SMOKE OK · arranque, mercado, decisiones, contabilidad, 20 jornadas soak, checkpoint y assets');
+console.log('SMOKE OK · arranque, mercado, trainer energía, decisiones, contabilidad, 20 jornadas soak, checkpoint y assets');
