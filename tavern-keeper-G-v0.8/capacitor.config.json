@@ -1,8 +1,0 @@
-{
-  "appId": "com.alfonso.tavernkeeper",
-  "appName": "Tavern Keeper",
-  "webDir": "www",
-  "server": {
-    "androidScheme": "https"
-  }
-}

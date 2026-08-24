@@ -1,6 +1,0 @@
-node_modules/
-android/
-.DS_Store
-*.log
-# La clave android-dev/tavernkeeper-dev.jks es deliberadamente una clave DEV pública del proyecto.
-# Nunca usar esta clave para una publicación de producción.

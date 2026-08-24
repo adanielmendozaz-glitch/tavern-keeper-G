@@ -1,65 +1,71 @@
-# Tavern Keeper G — V0.7
+# Tavern Keeper G — V0.8
 
-V0.7 profundiza dos sistemas centrales: la economía de la taberna y el mercado laboral.
+V0.8 mantiene exactamente la línea gráfica de V0.7, pero mejora con fuerza el mercado laboral y la identidad del personal.
 
-## Economía por producto
+## Novedades principales
 
-La taberna deja de operar solamente con “cerveza” y “raciones”. Ahora existen seis productos distintos:
+### 1) Candidatas mucho más variadas
+Cada renovación del mercado ahora intenta mezclar mejor:
 
-- Cerveza rubia
-- Vino especiado
-- Hidromiel dorada
-- Estofado de la casa
-- Asado especiado
-- Tabla de queso
+- linaje
+- nombre
+- arquetipo
+- retrato
+- rol
+- rasgos
+- atuendo
+- rareza
 
-Cada uno tiene:
+Las candidatas dejan de sentirse como simples variaciones mínimas.
 
-- inventario propio;
-- coste unitario aproximado;
-- precio de venta editable;
-- margen;
-- requisito de reputación;
-- demanda distinta según el tipo de cliente.
+### 2) Linajes
+Se introduce un sistema básico de linajes:
 
-El menú se puede activar/desactivar producto por producto. Durante la jornada viva, los clientes piden según sus preferencias y el stock se descuenta realmente. Se muestran alertas de inventario bajo y productos agotados.
+- Humana
+- Semielfa
+- Elfa
 
-## Proveedores
+Las elfas son poco frecuentes. Las semielfas también son raras, pero más comunes que las elfas.
 
-- Mercado local: coste normal.
-- Caravana mayorista: 10% más barata y lotes mayores; requiere reputación 18.
-- Gremio de Brumavieja: 18% más barato; requiere reputación 35.
+### 3) Arquetipos
+Además del rol (camarera / anfitriona / cocinera), cada candidata tiene ahora un arquetipo más específico, por ejemplo:
 
-Las compras actualizan el coste medio de inventario. El informe de jornada calcula coste de producto vendido, ticket medio y margen por producto.
+- Tabernera recia
+- Anfitriona elegante
+- Bardo de salón
+- Sirvienta noble
+- Exploradora élfica
+- Cocinera rústica
+- Chef cortesana
+- Herbolaria élfica
+- Maestra cervecera
 
-## Mercado laboral procedural
+### 4) Información visible en UI
+Las fichas de contratación y del personal muestran mejor:
 
-Cada renovación genera candidatas nuevas con nombre, edad adulta, rol, personalidad, stats, salario, especialidad, atuendo y retrato.
+- linaje
+- arquetipo
+- atuendo
+- rasgo visual
 
-Distribución base por candidata:
+### 5) Mercado laboral dinámico mejorado
+Las renovaciones pueden mostrar 3 a 5 candidatas.
 
-- Común: 55%
-- Competente: 27%
-- Experta: 12%
-- Élite: 5%
-- Prodigio: 0.9%
-- Genio: 0.1%
+Siguen existiendo rarezas:
 
-Las Prodigio y Genio disparan un anuncio especial en el mercado laboral. Las Genio tienen estadísticas excepcionalmente altas, una bonificación de eficiencia propia y costes salariales/de contratación muy elevados. No existe sistema de “pity”: encontrarlas debe sentirse realmente extraordinario.
+- Común
+- Competente
+- Experta
+- Élite
+- Prodigio
+- Genio
 
-Las candidatas raras también pueden llevar atuendos de fantasía medieval más atrevidos y distintivos, siempre como personajes adultos.
+Y ahora también hay anuncios especiales cuando llega una elfa, una Prodigio o una Genio.
 
-## Mercado dinámico
-
-Además de pagar 8 oro para renovar manualmente, existe una probabilidad de que nuevas candidatas lleguen automáticamente después de una jornada.
-
-## Android
+## Compatibilidad
 
 - `appId`: `com.alfonso.tavernkeeper`
-- `versionCode`: `7`
-- `versionName`: `0.7.0`
-- Misma firma DEV de V0.5/V0.6.
+- `versionCode`: `8`
+- `versionName`: `0.8.0`
 
-La APK debe instalarse como actualización sobre V0.6 y conservar la partida local.
-
-GitHub Actions genera el artifact `tavern-keeper-G-v0.7-apk`.
+Debe instalarse como actualización directa sobre V0.7, conservando la partida local.

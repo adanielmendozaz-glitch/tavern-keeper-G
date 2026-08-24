@@ -1,8 +1,8 @@
 {
   "name": "tavern-keeper",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
-  "description": "Juego móvil de gestión avanzada de taberna medieval para Android. V0.7 añade economía profunda por producto, proveedores, menú configurable, márgenes, preferencias de clientes y mercado laboral procedural con rarezas extraordinarias.",
+  "description": "Juego móvil de gestión de taberna medieval para Android. V0.8 añade mercado laboral con diversidad avanzada, linajes, arquetipos y candidatas mucho más únicas sin romper la línea gráfica.",
   "scripts": {
     "serve": "npx serve www",
     "android:add": "npx cap add android",
