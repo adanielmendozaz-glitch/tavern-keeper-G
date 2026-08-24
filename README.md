@@ -1,42 +1,54 @@
-# Tavern Keeper G — V0.5
+# Tavern Keeper G — V0.6
 
-V0.5 convierte la taberna en una operación viva: el personal ya no es un número global, sino una plantilla asignada a puestos reales que cambian el rendimiento de cada jornada.
+V0.6 convierte la jornada en una experiencia viva y dirigible sin abandonar la línea visual de V0.5.
 
-## Novedades V0.5
+## Jornada viva
 
-- Puestos operativos: Salón, Barra, Cocina, Recepción y Despensa.
-- Asignación directa desde el expediente de cada trabajadora.
-- Descansar quita a una trabajadora del turno; activarla vuelve a incorporarla.
-- Salón influye en velocidad y satisfacción de mesas.
-- Barra influye directamente en ventas de cerveza.
-- Cocina determina la producción real de platos; sin cocinera asignada la venta de comida cae de forma fuerte.
-- Recepción mejora hospitalidad, demanda y atención VIP.
-- Despensa reduce el riesgo de merma.
-- Panel de cobertura operativa con puestos cubiertos/vacantes.
-- Personal visible sobre la escena de taberna en función del puesto asignado.
-- Indicador de aforo de la última jornada y preparación operativa.
-- Fatiga distinta según la carga del puesto.
-- La jornada registra puestos sin cubrir y la preparación del turno.
-- Migración automática de partidas V0.4 al esquema V0.5.
+- La taberna abre una jornada de 6 horas virtuales (18:00–00:00).
+- Duración aproximada: 2 minutos a 1×, 1 minuto a 2× y 30 segundos a 4×.
+- Clientes individuales entran, esperan mesa, hacen pedidos, consumen y se marchan.
+- Se muestran ocupación, caja, clientes servidos y clientes perdidos en tiempo real.
+- Tipos: campesinos, mercaderes, aventureros, guardias y nobles.
+- Cada segmento tiene paciencia, preferencias y gasto diferentes.
+- El servicio lento provoca abandonos.
+- Falta de barra o cocina ralentiza los pedidos que dependen de esos puestos.
+- Propinas ligadas a satisfacción y tipo de cliente.
+- Eventos durante el turno: grupos de mercaderes, peleas, música, nobles y rondas.
+- Clientes muy satisfechos pueden convertirse en habituales y regresar en jornadas posteriores.
 
-## Actualización Android sin desinstalar
+## Dirección de personal durante el servicio
 
-El proyecto conserva el mismo `appId`: `com.alfonso.tavernkeeper`.
+- Las trabajadoras permanecen operativas por puestos: Salón, Barra, Cocina, Recepción y Despensa.
+- Durante la jornada se puede tocar una trabajadora para moverla al siguiente puesto compatible.
+- La simulación recalcula el rendimiento inmediatamente.
+- La fatiga al final del turno depende del tiempo trabajado y de la carga del puesto.
+- Moral, lealtad y experiencia siguen evolucionando.
 
-Desde V0.5, GitHub Actions usa una clave de desarrollo fija incluida en `android-dev/tavernkeeper-dev.jks`, y V0.5 usa `versionCode 5` / `versionName 0.5.0`.
+## Informe de jornada
 
-Esto permite instalar V0.6, V0.7, etc. encima de V0.5 siempre que:
+Registra:
 
-1. se conserve el mismo `appId`;
-2. se siga usando la misma clave DEV;
-3. cada APK aumente `versionCode`.
+- llegadas;
+- clientes servidos y perdidos;
+- pico de ocupación;
+- espera promedio;
+- bebidas y platos vendidos;
+- propinas;
+- eventos;
+- nuevos habituales;
+- ingresos, gastos y beneficio neto.
 
-La clave incluida es deliberadamente una clave de DESARROLLO. No debe utilizarse para una futura publicación en Google Play.
+## Actualización Android
+
+- `appId`: `com.alfonso.tavernkeeper`
+- `versionCode`: `6`
+- `versionName`: `0.6.0`
+- Misma firma DEV estable introducida en V0.5.
+
+Por tanto, una APK V0.6 generada por este repositorio debe instalarse como **actualización encima de V0.5**, conservando la partida local.
+
+La clave incluida en `android-dev/` es exclusivamente de desarrollo y no debe usarse para publicar el juego en una tienda.
 
 ## Compilación
 
-Al hacer push a `main`, `.github/workflows/android-debug.yml` genera un APK Android firmado con la clave DEV estable y lo publica como artifact de GitHub Actions.
-
-## Guardado
-
-La partida se conserva en almacenamiento local de la aplicación y V0.5 migra el guardado existente automáticamente.
+Al hacer push a `main`, GitHub Actions genera el artifact `tavern-keeper-G-v0.6-apk`.

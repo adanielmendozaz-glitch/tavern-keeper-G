@@ -236,7 +236,72 @@
     </main>
   </div>
 
-  <footer class="statusbar"><span>Tavern Keeper G · V0.5</span><span>Actualización directa · conserva la partida instalada</span><button id="resetBtn" class="link-danger">Reiniciar partida</button></footer>
+  <footer class="statusbar"><span>Tavern Keeper G · V0.6</span><span>Actualización directa · conserva la partida instalada</span><button id="resetBtn" class="link-danger">Reiniciar partida</button></footer>
+</div>
+
+
+<div id="liveShiftOverlay" class="live-shift-overlay" aria-hidden="true">
+  <div class="live-shift-shell">
+    <header class="live-header">
+      <div>
+        <span class="eyebrow">JORNADA EN CURSO</span>
+        <h2><span id="liveDayLabel">Día 1</span> · <span id="liveClock">18:00</span></h2>
+      </div>
+      <div class="live-header-kpis">
+        <span>AFORO <b id="liveOccupancy">0/10</b></span>
+        <span>CAJA <b id="liveRevenue">0</b></span>
+        <span>SERVIDOS <b id="liveServed">0</b></span>
+        <span>PERDIDOS <b id="liveLost">0</b></span>
+      </div>
+    </header>
+
+    <div class="live-grid">
+      <section class="live-floor">
+        <div class="live-scene-shade"></div>
+        <div class="live-phase" id="livePhase">APERTURA</div>
+        <div id="liveEventBanner" class="live-event-banner"></div>
+        <div id="liveGuests" class="live-guests"></div>
+        <div class="live-floor-legend">
+          <span><i class="dot waiting"></i> Esperando</span>
+          <span><i class="dot served"></i> Servido</span>
+          <span><i class="dot upset"></i> Molesto</span>
+        </div>
+      </section>
+
+      <aside class="live-control-panel">
+        <section class="live-section">
+          <div class="live-section-head"><span class="eyebrow">DIRECCIÓN DE TURNO</span><b id="liveReadiness">0%</b></div>
+          <p class="live-help">Toca una trabajadora para moverla al siguiente puesto compatible durante el servicio.</p>
+          <div id="liveStaffDock" class="live-staff-dock"></div>
+        </section>
+
+        <section class="live-section live-orders">
+          <div class="live-section-head"><span class="eyebrow">OPERACIÓN</span><b id="liveWaiting">0 esperando</b></div>
+          <div class="live-operational-grid">
+            <span>SALÓN <b id="liveSalon">—</b></span>
+            <span>BARRA <b id="liveBar">—</b></span>
+            <span>COCINA <b id="liveKitchen">—</b></span>
+            <span>RECEPCIÓN <b id="liveReception">—</b></span>
+          </div>
+        </section>
+
+        <section class="live-section live-log-section">
+          <div class="live-section-head"><span class="eyebrow">CRÓNICA DEL SERVICIO</span><b>EN VIVO</b></div>
+          <div id="liveLog" class="live-log"></div>
+        </section>
+      </aside>
+    </div>
+
+    <footer class="live-footer">
+      <div class="speed-control" aria-label="Velocidad de jornada">
+        <button data-live-speed="1" class="active">1×</button>
+        <button data-live-speed="2">2×</button>
+        <button data-live-speed="4">4×</button>
+      </div>
+      <button id="livePauseBtn" class="secondary-live">PAUSAR</button>
+      <button id="liveResolveBtn" class="primary-live">RESOLVER JORNADA</button>
+    </footer>
+  </div>
 </div>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
