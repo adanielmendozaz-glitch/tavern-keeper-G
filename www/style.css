@@ -298,3 +298,14 @@ body{padding-top:env(safe-area-inset-top)}
 .trainer-note{display:flex;justify-content:space-between;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid #30231a;color:#74675b;font-size:7px}.trainer-note b{color:#9b7747;letter-spacing:.08em}
 body.trainer-open{overflow:hidden}
 @media(max-width:560px){.trainer-overlay{padding:10px}.trainer-card{padding:12px}.trainer-worker{grid-template-columns:1fr}.trainer-energy{text-align:left}.trainer-actions{grid-template-columns:1fr}.trainer-actions button{min-height:46px}.trainer-note{flex-direction:column;gap:4px}}
+
+
+/* V0.9.5 · REBALANCE ECONÓMICO */
+.economy-forecast{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:#302318;border-top:1px solid #3a2a1f}
+.economy-forecast .econ-cell{min-width:0;padding:9px 10px;background:#0d0b09}
+.economy-forecast span{display:block;color:#776b60;font-size:7px;text-transform:uppercase;letter-spacing:.08em}
+.economy-forecast b{display:block;margin-top:3px;color:#dfd2c1;font:700 14px Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.economy-forecast .healthy b{color:#78b987}.economy-forecast .tight b{color:#d1a45b}.economy-forecast .danger b{color:#c96a61}
+.menu-product.no-stock{border-color:#553229}.menu-product.no-stock .menu-toggle{border-color:#5a342c;color:#b97a70}
+.cash-note{margin-top:10px;padding:9px 10px;border-left:2px solid #6f5639;background:#15100c;color:#8c7d6e;font-size:8px;line-height:1.5}
+@media(max-width:600px){.economy-forecast{grid-template-columns:1fr 1fr}.economy-forecast .econ-cell{padding:8px}.economy-forecast b{font-size:12px}}

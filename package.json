@@ -1,8 +1,8 @@
 {
   "name": "tavern-keeper",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "private": true,
-  "description": "Tavern Keeper G V0.9.4: trainer/debug oculto de energía para restaurar trabajadoras y activar energía infinita, conservando la base estable V0.9.3.",
+  "description": "Tavern Keeper G V0.9.5: rebalance económico, nómina activa/descanso, menú con stock, previsión de punto de equilibrio y mayor rotación con buen personal.",
   "scripts": {
     "serve": "npx serve www",
     "android:add": "npx cap add android",

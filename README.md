@@ -1,31 +1,22 @@
-# Tavern Keeper G — V0.9.4 TRAINER
+# Tavern Keeper G — V0.9.5 ECONOMY REBALANCE
 
-Base: V0.9.3 STABLE.
+Base: V0.9.4 TRAINER. Conserva el trainer oculto de energía y la partida instalada.
 
-## Trainer oculto de energía
-Toca **5 veces** el texto `TAVERN KEEPER G` en la cabecera para abrir el panel DEBUG.
-
-Incluye:
-- Restaurar la trabajadora seleccionada a 100% de energía.
-- Restaurar toda la plantilla a 100% y ponerla disponible.
-- Energía infinita opcional y persistente.
-- Con energía infinita, el entrenamiento y el cierre de jornada no dejan cansada a la plantilla.
-- No modifica estadísticas, rareza, salario, moral ni lealtad.
+## Cambios económicos
+- Personal activo: 100% del jornal.
+- Personal descansando: 25% de manutención diaria.
+- Salarios de nuevas candidatas reajustados; las rarezas altas siguen siendo caras pero también más productivas.
+- Los contratos antiguos excesivos se topan al migrar a la nueva escala.
+- Productos avanzados sin stock quedan fuera del menú al migrar.
+- No se puede activar un producto sin comprar stock primero.
+- Los clientes dejan de pedir productos agotados una vez que el stock llega a cero.
+- Buen personal aumenta la rotación real de mesas y la capacidad de servir más clientes.
+- Antes de abrir se muestra: nómina, punto de equilibrio, servicio esperado y rentabilidad estimada.
+- Finanzas separa beneficio operativo de compras de inventario y variación total de caja.
 
 ## Android
 - appId: `com.alfonso.tavernkeeper`
-- versionCode: `13`
-- versionName: `0.9.4`
+- versionCode: `14`
+- versionName: `0.9.5`
 - misma firma DEV estable
-- artifact: `tavern-keeper-G-v0.9.4-apk`
-
-## Validación
-`npm run check` ejecuta sintaxis + smoke tests de:
-- arranque
-- mercado laboral
-- trainer de energía
-- decisiones
-- contabilidad
-- 20 jornadas soak
-- checkpoint/reanudación
-- assets
+- artifact: `tavern-keeper-G-v0.9.5-apk`
