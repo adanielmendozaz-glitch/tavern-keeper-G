@@ -1,8 +1,8 @@
 {
   "name": "tavern-keeper",
-  "version": "0.9.5",
+  "version": "0.9.6",
   "private": true,
-  "description": "Tavern Keeper G V0.9.5: rebalance económico, nómina activa/descanso, menú con stock, previsión de punto de equilibrio y mayor rotación con buen personal.",
+  "description": "Tavern Keeper G V0.9.6: taberna solo cerveza + servicios premium de hospitalidad ofrecidos por las trabajadoras.",
   "scripts": {
     "serve": "npx serve www",
     "android:add": "npx cap add android",

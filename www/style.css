@@ -309,3 +309,13 @@ body.trainer-open{overflow:hidden}
 .menu-product.no-stock{border-color:#553229}.menu-product.no-stock .menu-toggle{border-color:#5a342c;color:#b97a70}
 .cash-note{margin-top:10px;padding:9px 10px;border-left:2px solid #6f5639;background:#15100c;color:#8c7d6e;font-size:8px;line-height:1.5}
 @media(max-width:600px){.economy-forecast{grid-template-columns:1fr 1fr}.economy-forecast .econ-cell{padding:8px}.economy-forecast b{font-size:12px}}
+
+
+/* V0.9.6 · BEER TAVERN + PREMIUM SERVICES */
+.premium-service-grid{display:grid;gap:10px}
+.premium-worker-card{border:1px solid #3b2b20;background:#0e0b09;padding:10px;display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:start}
+.premium-worker-card img{width:64px;height:82px;object-fit:cover;border:1px solid #5d422c}
+.premium-worker-copy h4{margin:0 0 4px;font-size:13px;color:#e6d7bf}.premium-worker-copy small{display:block;color:#8f8172;margin-bottom:7px}
+.premium-options{display:flex;flex-wrap:wrap;gap:5px}.premium-options button{font-size:7px;padding:6px 7px;border:1px solid #4c392a;background:#15100d;color:#bca991}.premium-options button.active{background:#17311f;border-color:#3f7b51;color:#a9e3b8}.premium-options button:disabled{opacity:.3}
+.premium-badge{display:inline-flex;padding:3px 7px;border:1px solid #72542f;background:#1a1109;color:#ddb979;font-size:7px;text-transform:uppercase;letter-spacing:.08em}
+.premium-income{color:#87d69a!important}

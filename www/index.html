@@ -41,7 +41,7 @@
       <button class="nav-btn" data-tab="tavern"><span>02</span><b>Taberna</b></button>
       <button class="nav-btn" data-tab="staff"><span>03</span><b>Personal</b></button>
       <button class="nav-btn" data-tab="customers"><span>04</span><b>Clientes</b></button>
-      <button class="nav-btn" data-tab="kitchen"><span>05</span><b>Cocina</b></button>
+      <button class="nav-btn" data-tab="kitchen"><span>05</span><b>Premium</b></button>
       <button class="nav-btn" data-tab="cellar"><span>06</span><b>Bodega</b></button>
       <button class="nav-btn" data-tab="finance"><span>07</span><b>Finanzas</b></button>
       <button class="nav-btn" data-tab="upgrades"><span>08</span><b>Mejoras</b></button>
@@ -146,7 +146,7 @@
               <div class="panel-cap compact"><div><span class="eyebrow">SUMINISTROS</span><h3>Inventario</h3></div><span class="status-chip">Bodega <b id="cellarLevelMini">1</b></span></div>
               <div class="inventory-mini">
                 <div><span>Cerveza</span><b id="aleStockMini">20</b></div>
-                <div><span>Raciones</span><b id="foodStockMini">12</b></div>
+                <div><span>Servicios premium</span><b id="foodStockMini">0</b></div>
               </div>
             </section>
 
@@ -204,13 +204,17 @@
       </section>
 
       <section id="kitchen" class="panel">
-        <div class="page-head"><div><span class="eyebrow">PRODUCCIÓN</span><h1>Cocina</h1><p>Inventario alimentario y capacidad de producción.</p></div></div>
-        <div class="two-col stock-layout"><div class="card page-card"><div class="panel-cap"><div><span class="eyebrow">DESPENSA</span><h3>Alimentos y platos</h3></div></div><div id="foodStockGrid" class="product-stock-grid page-card-body"></div><b id="foodStock" hidden>0</b><button id="buyFood" hidden></button></div><div class="card page-card"><div class="panel-cap"><div><span class="eyebrow">RENDIMIENTO</span><h3>Cocina</h3></div></div><div id="kitchenMetrics" class="metric-list page-card-body"></div></div></div>
+        <div class="page-head"><div><span class="eyebrow">HOSPITALIDAD DE ALTO VALOR</span><h1>Servicios Premium</h1><p>Asigna a cada trabajadora un servicio especial. Se ofrecerá a clientes adecuados durante la jornada.</p></div></div>
+        <div class="two-col stock-layout">
+          <div class="card page-card"><div class="panel-cap"><div><span class="eyebrow">PLANTILLA</span><h3>Servicios asignados</h3></div></div><div id="premiumServiceGrid" class="premium-service-grid page-card-body"></div></div>
+          <div class="card page-card"><div class="panel-cap"><div><span class="eyebrow">RENDIMIENTO</span><h3>Premium</h3></div></div><div id="premiumMetrics" class="metric-list page-card-body"></div></div>
+        </div>
+        <b id="foodStock" hidden>0</b><div id="foodStockGrid" hidden></div><div id="kitchenMetrics" hidden></div><button id="buyFood" hidden></button>
       </section>
 
       <section id="cellar" class="panel">
-        <div class="page-head"><div><span class="eyebrow">SUMINISTROS</span><h1>Bodega</h1><p>Existencias de bebida, almacenamiento y merma.</p></div></div>
-        <div class="two-col stock-layout"><div class="card page-card"><div class="panel-cap"><div><span class="eyebrow">PROVEEDOR ACTUAL</span><h3>Compras y bebidas</h3></div></div><div id="supplierGrid" class="supplier-grid page-card-body"></div><div id="beverageStockGrid" class="product-stock-grid page-card-body"></div><b id="aleStock" hidden>0</b><button id="buyAle" hidden></button></div><div class="card page-card"><div class="panel-cap"><div><span class="eyebrow">CAPACIDAD</span><h3>Bodega</h3></div></div><div id="cellarMetrics" class="metric-list page-card-body"></div></div></div>
+        <div class="page-head"><div><span class="eyebrow">SUMINISTROS</span><h1>Bodega</h1><p>Existencias de cerveza, proveedores y almacenamiento.</p></div></div>
+        <div class="two-col stock-layout"><div class="card page-card"><div class="panel-cap"><div><span class="eyebrow">PROVEEDOR ACTUAL</span><h3>Compra de cerveza</h3></div></div><div id="supplierGrid" class="supplier-grid page-card-body"></div><div id="beverageStockGrid" class="product-stock-grid page-card-body"></div><b id="aleStock" hidden>0</b><button id="buyAle" hidden></button></div><div class="card page-card"><div class="panel-cap"><div><span class="eyebrow">CAPACIDAD</span><h3>Bodega</h3></div></div><div id="cellarMetrics" class="metric-list page-card-body"></div></div></div>
       </section>
 
       <section id="finance" class="panel">
@@ -220,7 +224,7 @@
       </section>
 
       <section id="upgrades" class="panel">
-        <div class="page-head"><div><span class="eyebrow">CAPEX</span><h1>Mejoras</h1><p>Invierte en capacidad, producción, almacenamiento, decoración y habitaciones.</p></div></div>
+        <div class="page-head"><div><span class="eyebrow">CAPEX</span><h1>Mejoras</h1><p>Invierte en aforo, barra, almacenamiento, decoración, habitaciones y atención VIP.</p></div></div>
         <div id="expansionSummary" class="expansion-summary"></div><div id="upgradeGrid" class="upgrade-grid"></div>
       </section>
 
@@ -236,7 +240,7 @@
     </main>
   </div>
 
-  <footer class="statusbar"><span>Tavern Keeper G · V0.9.5</span><span>Actualización directa · conserva la partida instalada</span><button id="resetBtn" class="link-danger">Reiniciar partida</button></footer>
+  <footer class="statusbar"><span>Tavern Keeper G · V0.9.6</span><span>Actualización directa · conserva la partida instalada</span><button id="resetBtn" class="link-danger">Reiniciar partida</button></footer>
 </div>
 
 

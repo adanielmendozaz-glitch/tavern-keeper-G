@@ -18,12 +18,12 @@ const localStorage={getItem:k=>store.has(k)?store.get(k):null,setItem:(k,v)=>sto
 let timerId=1;
 const windowObj={scrollTo(){},addEventListener(){}};
 const context=vm.createContext({console,document,window:windowObj,localStorage,setTimeout:()=>1,clearTimeout(){},setInterval:()=>timerId++,clearInterval(){},structuredClone,Date,Math,JSON,Set,Map,Object,Array,String,Number,Boolean,RegExp,Error});
-const expose=`\n;globalThis.__tk={getState:()=>state,getLive:()=>liveShift,setLive:v=>liveShift=v,startLiveShift,simulateLiveTick,finishLiveShift,refreshCandidates,generateCandidates,resolveV09Decision,V09_DECISION_EVENTS,persistLiveShift,restoreLiveShift,clearLiveShiftSnapshot,spawnLiveGuest,restoreSelectedEnergy,restoreAllEnergy,setInfiniteEnergy,getTrainer:()=>trainerSettings,trainerSecretTap,openTrainer,closeTrainer,economyForecast,workerPayrollCost,activePayroll,restPayroll,projectedArrivalsTarget,turnoverMultiplier,toggleMenuProduct,buyProduct,clearCashSpendLedger,cashSpendSnapshot,pendingCashSpendTotal};`;
+const expose=`\n;globalThis.__tk={getState:()=>state,getLive:()=>liveShift,setLive:v=>liveShift=v,startLiveShift,simulateLiveTick,finishLiveShift,refreshCandidates,generateCandidates,resolveV09Decision,V09_DECISION_EVENTS,persistLiveShift,restoreLiveShift,clearLiveShiftSnapshot,spawnLiveGuest,restoreSelectedEnergy,restoreAllEnergy,setInfiniteEnergy,getTrainer:()=>trainerSettings,trainerSecretTap,openTrainer,closeTrainer,economyForecast,workerPayrollCost,activePayroll,restPayroll,projectedArrivalsTarget,turnoverMultiplier,toggleMenuProduct,buyProduct,clearCashSpendLedger,cashSpendSnapshot,pendingCashSpendTotal,PREMIUM_SERVICES_V096,setPremiumService,premiumService,premiumWorkers,premiumTryForGuest,ensureV096State};`;
 vm.runInContext(source+expose,context,{filename:'game.js'});
 const api=context.__tk;
 assert(api,'API de smoke test no expuesta');
-assert(version==='0.9.5','VERSION debe ser 0.9.5');
-assert(html.includes('Tavern Keeper G · V0.9.5'),'Footer visual no coincide con V0.9.5');
+assert(version==='0.9.6','VERSION debe ser 0.9.6');
+assert(html.includes('Tavern Keeper G · V0.9.6'),'Footer visual no coincide con V0.9.6');
 const st=api.getState();
 assert(st.staff?.length>0,'La plantilla inicial no se renderiza');
 assert(st.candidates?.length>0,'El mercado laboral quedó vacío al arrancar');
@@ -143,8 +143,31 @@ for(let run=0;run<total;run++){
 }
 assert(positive>=20,`La operación sensata sigue demasiado castigada: ${positive}/${total} jornadas positivas`);
 
+
+// V0.9.6: especialización solo cerveza + servicios premium
+api.ensureV096State();
+assert(st.menuEnabled.beer===true,'Cerveza debe quedar activa');
+for(const id of ['wine','mead','stew','roast','cheese']){assert(st.menuEnabled[id]===false,`${id} no debe estar activo`);assert((st.inventory[id]||0)===0,`${id} debe quedar fuera del inventario operativo`)}
+assert(html.includes('Servicios Premium'),'Falta interfaz de servicios premium');
+assert(html.includes('<b>Premium</b>'),'La navegación no muestra Premium');
+// Asegurar una trabajadora elegible y asignarle servicio
+st.staff[0].charisma=95;st.staff[0].rarityKey='expert';st.staff[0].active=true;st.staff[0].assignment='salon';
+assert(api.setPremiumService(st.staff[0].id,'company')===true,'No se pudo asignar compañía/conversación');
+assert(api.premiumService(st.staff[0]).id==='company','Servicio premium no persistió');
+// Servicio legendario solo para Prodigio/Genio
+assert(api.setPremiumService(st.staff[0].id,'legendary')===false,'Servicio legendario aceptó rareza no válida');
+st.staff[0].rarityKey='genius';assert(api.setPremiumService(st.staff[0].id,'legendary')===true,'Genio no pudo recibir servicio legendario');
+// Jornada solo cerveza
+api.setLive(null);api.clearLiveShiftSnapshot();st.gold=10000;st.inventory.beer=100;st.menuEnabled={beer:true,wine:false,mead:false,stew:false,roast:false,cheese:false};st.staff.forEach(w=>{w.active=true;w.energy=100;if(!['salon','barra','recepcion'].includes(w.assignment))w.assignment='barra'});
+api.startLiveShift();assert(api.getLive(),'No inició jornada cerveza-only');
+const forced=api.spawnLiveGuest('nobles',false);assert(forced&&forced.orders.length===1&&forced.orders[0]==='beer','Cliente pidió algo distinto de cerveza');
+let beerLoops=0;while(api.getLive()&&!api.getLive().finished&&beerLoops++<500){if(api.getLive().pendingDecision)api.resolveV09Decision(1);else api.simulateLiveTick()}
+assert(api.getLive()?.finished,'Jornada cerveza-only quedó bloqueada');
+assert((st.lastDay?.mealsSold||0)===0,'Se vendió comida en modo solo cerveza');
+assert(Object.entries(st.lastDay.productSales||{}).filter(([id,x])=>id!=='beer'&&x.qty>0).length===0,'Se vendió producto distinto de cerveza');
+
 // Assets referenciados deben existir
 const refs=[...source.matchAll(/['"](assets\/[^'"]+)['"]/g)].map(m=>m[1]);
 const missing=[...new Set(refs)].filter(r=>!fs.existsSync(path.join(ROOT,'www',r)));
 assert(missing.length===0,`Assets faltantes: ${missing.join(', ')}`);
-console.log('SMOKE OK · arranque, mercado, trainer, economía V0.9.5, decisiones, 20 jornadas soak, checkpoint y assets');
+console.log('SMOKE OK · V0.9.6 cerveza-only, premium, trainer, economía, decisiones, soak, checkpoint y assets');

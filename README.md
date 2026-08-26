@@ -1,22 +1,25 @@
-# Tavern Keeper G — V0.9.5 ECONOMY REBALANCE
+# Tavern Keeper G — V0.9.6 PREMIUM
 
-Base: V0.9.4 TRAINER. Conserva el trainer oculto de energía y la partida instalada.
+## Cambio central
+La taberna ahora vende **solamente cerveza** como producto normal. Se eliminan del funcionamiento operativo vino, hidromiel, comida, queso y asado.
 
-## Cambios económicos
-- Personal activo: 100% del jornal.
-- Personal descansando: 25% de manutención diaria.
-- Salarios de nuevas candidatas reajustados; las rarezas altas siguen siendo caras pero también más productivas.
-- Los contratos antiguos excesivos se topan al migrar a la nueva escala.
-- Productos avanzados sin stock quedan fuera del menú al migrar.
-- No se puede activar un producto sin comprar stock primero.
-- Los clientes dejan de pedir productos agotados una vez que el stock llega a cero.
-- Buen personal aumenta la rotación real de mesas y la capacidad de servir más clientes.
-- Antes de abrir se muestra: nómina, punto de equilibrio, servicio esperado y rentabilidad estimada.
-- Finanzas separa beneficio operativo de compras de inventario y variación total de caja.
+## Servicios Premium
+Cada trabajadora puede recibir una asignación premium según Carisma y rareza:
+
+- Atención VIP
+- Mesa reservada
+- Compañía y conversación
+- Entretenimiento privado
+- Recepción de nobles
+- Servicio legendario (solo Prodigio/Genio)
+
+Los servicios aparecen en la pestaña **Premium** (antes Cocina). Durante una jornada, clientes de valor compatible pueden aceptarlos. Generan ingreso adicional, pueden mejorar reputación y consumen energía. El trainer de energía V0.9.4 sigue funcionando.
+
+## Economía
+Los reportes distinguen cerveza, ingreso premium, propinas y VIP. Las compras de caravana ahora entregan cerveza exclusivamente. La cocina deja de ser un puesto obligatorio.
 
 ## Android
 - appId: `com.alfonso.tavernkeeper`
-- versionCode: `14`
-- versionName: `0.9.5`
-- misma firma DEV estable
-- artifact: `tavern-keeper-G-v0.9.5-apk`
+- versionCode: `15`
+- versionName: `0.9.6`
+- artifact: `tavern-keeper-G-v0.9.6-apk`
